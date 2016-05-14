@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/RoomType.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/UserServiceHandler.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/ChatBubble.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/CreateRoom.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/GuiRoom.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpCallback.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/ChatupGlobals.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/JoinRoom.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpFields.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/GuiLogin.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/GuiMessage.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/MessageService.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/MessageServiceHandler.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/resources/message_bubble.9.png</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpRequest.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/RoomService.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/Room.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/resources/application-icon.png</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/GetRooms.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/NinePatchChunk.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/SendMessage.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpDispatcher.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/UserService.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/StringUtils.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpQuery.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/Message.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/LeaveRoom.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/UserLogin.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/NinePatch.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/GuiPassword.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/ChatupClient.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpCommands.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/GetMessages.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/resources/application-large.png</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/SimplePair.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/GuiMain.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/RoomServiceHandler.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpResponse.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/UserDisconnect.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/GraphicsUtilities.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpService.java</file>
+        </group>
+    </open-files>
+</project-private>
