@@ -1,25 +1,26 @@
 package com.chatup.gui;
 
 import com.chatup.http.HttpCallback;
-import com.chatup.http.HttpFields;
+import com.chatup.http.HttpResponse;
 import com.chatup.http.MessageService;
 import com.chatup.http.UserService;
 import com.chatup.http.RoomService;
-
 import com.chatup.model.Message;
 import com.chatup.model.Room;
 import com.chatup.model.RoomModel;
-
 import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
 
+import java.awt.Component;
 import java.awt.EventQueue;
+
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.UnknownHostException;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -34,10 +35,15 @@ public class ChatupClient
 	    roomService = new RoomService(InetAddress.getLocalHost(), 8080);
 	    userService = new UserService(InetAddress.getLocalHost(), 8080);
 	}
-	catch (UnknownHostException ex)
+	catch (MalformedURLException | UnknownHostException ex)
 	{
-	    Logger.getLogger(GuiMain.class.getName()).log(Level.SEVERE, null, ex);
+	     Logger.getLogger(GuiMain.class.getName()).log(Level.SEVERE, null, ex);
 	}
+    }
+    
+    protected void showError(final Component parent, final HttpResponse httpResponse)
+    {
+	JOptionPane.showMessageDialog(parent, HttpResponse.getErrorMessage(httpResponse), "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
     }
 
     private MessageService messageService;
@@ -63,30 +69,9 @@ public class ChatupClient
 	return instance;
     }
 
-    public void getRooms(final HttpCallback actionCallback)
+    public boolean responseGetRooms(final JsonArray jsonArray)
     {
-	roomService.getRooms(actionCallback);
-    }
-
-    public boolean insertRooms(final JsonArray jsonArray)
-    {
-	boolean newRooms = false;
-
-	for (final JsonValue jsonValue : jsonArray)
-	{
-	    if (jsonValue.isObject())
-	    {
-		JsonObject jsonObject = jsonValue.asObject();
-		myRooms.insertRoom(
-		    jsonObject.getInt(HttpFields.RoomId, -1),
-		    jsonObject.getString(HttpFields.RoomName, null),
-		    jsonObject.getString(HttpFields.RoomPassword, null),
-		    jsonObject.getString(HttpFields.UserToken, null));
-		newRooms = true;
-	    }
-	}
-
-	return newRooms;
+	return myRooms.insertRooms(jsonArray);
     }
    
     public String getUser()
@@ -100,7 +85,7 @@ public class ChatupClient
 	sessionToken = userPassword;
     }
 
-    public boolean userLogin(final String userEmail, final String userToken)
+    public boolean responseLogin(final String userEmail, final String userToken)
     {
 	if (sessionEmail.equals(userEmail))
 	{
@@ -110,25 +95,30 @@ public class ChatupClient
 	return true;
     }
 
-    public void requestLogin(final String userEmail, final String userToken, final HttpCallback actionCallback)
+    public void actionLogin(final String userEmail, final String userToken, final HttpCallback actionCallback)
     {
 	setLogin(userEmail, userToken);
 	userService.userLogin(userEmail, userToken, actionCallback);
     }
 
-    public void disconnect(final HttpCallback actionCallback)
+    public void actionGetRooms(final HttpCallback httpCallback)
     {
-	userService.userDisconnect(sessionEmail, sessionToken, actionCallback);
+	roomService.getRooms(httpCallback);
     }
 
-    public boolean deleteRoom(int roomId)
+    public void actionDisconnect(final HttpCallback httpCallback)
     {
-	return true;
+	userService.userDisconnect(sessionEmail, sessionToken, httpCallback);
     }
 
-    public void joinRoom(int roomid, final String roomPassword, final HttpCallback actionCallback)
+    public void actionLeaveRoom(int roomId, final HttpCallback httpCallback)
     {
-	roomService.joinRoom(roomid, roomPassword, actionCallback);
+	roomService.leaveRoom(roomId, httpCallback);
+    }
+
+    public void actionJoinRoom(int roomid, final String roomPassword, final HttpCallback httpCallback)
+    {
+	roomService.joinRoom(roomid, roomPassword, httpCallback);
     }
 
     public static void main(String args[])
@@ -163,7 +153,7 @@ public class ChatupClient
 
     public boolean createRoom(String string, String string0)
     {
-	throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	throw new UnsupportedOperationException("Not supported yet.");
     }
 
     protected final Room getRoom(int roomId)

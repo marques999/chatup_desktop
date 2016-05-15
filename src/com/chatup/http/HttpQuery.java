@@ -14,26 +14,26 @@ public class HttpQuery
         if (httpParameters.length > 0)
         {
             sb.append("?");
-        }
+ 
+	    for (int i = 0; i < httpParameters.length; i++)
+	    {
+		try
+		{
+		    sb.append(httpParameters[i].getFirst());
+		    sb.append("=");
+		    sb.append(URLEncoder.encode(httpParameters[i].getSecond(), StandardCharsets.UTF_8.toString()));
+		}
+		catch (Exception ex)
+		{
+		    break;
+		}
 
-        for (int i = 0; i < httpParameters.length; i++)
-        {
-            try
-            {
-                sb.append(httpParameters[i].getFirst());
-                sb.append("=");
-                sb.append(URLEncoder.encode(httpParameters[i].getSecond(), StandardCharsets.UTF_8.toString()));
-            }
-            catch (Exception ex)
-            {
-                break;
-            }
-
-            if (i < httpParameters.length - 1)
-            {
-                sb.append("&");
-            }
-        }
+		if (i < httpParameters.length - 1)
+		{
+		    sb.append("&");
+		}
+	    }
+	}
     }
 
     @Override

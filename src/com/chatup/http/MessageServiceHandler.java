@@ -6,7 +6,7 @@ import com.chatup.model.Message;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 
-class MessageServiceHandler  extends HttpDispatcher
+class MessageServiceHandler extends HttpDispatcher
 {
     MessageServiceHandler(final String httpMethod, final String httpParameters)
     {
@@ -16,7 +16,7 @@ class MessageServiceHandler  extends HttpDispatcher
     @Override
     protected HttpResponse parseGetResponse(JsonValue jsonValue)
     {
-        final JsonObject jsonObject = extractResponse(jsonValue, HttpCommands.RetrieveMessages);
+        final JsonObject jsonObject = extractResponse(jsonValue);
 
         if (jsonObject == null)
         {
@@ -30,7 +30,7 @@ class MessageServiceHandler  extends HttpDispatcher
     protected HttpResponse parsePostResponse(JsonValue jsonValue)
     {
         final ChatupClient chatupInstance = ChatupClient.getInstance();
-        final JsonObject jsonObject = extractResponse(jsonValue, HttpCommands.SendMessage);
+        final JsonObject jsonObject = extractResponse(jsonValue);
 
         if (jsonObject == null)
         {

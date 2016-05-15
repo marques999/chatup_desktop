@@ -2,39 +2,33 @@ package com.chatup.model;
 
 import java.util.HashMap;
 import java.util.TreeSet;
+
 import javafx.util.Pair;
 
 public class Room
 {
     private String roomName;
-    private String roomPassword;
     private String roomOwner;
     private RoomType roomType;
-    private TreeSet<Message> roomMessages;
-    private HashMap<String, String> roomUsers;
+    private final TreeSet<Message> roomMessages;
+    private final HashMap<String, String> roomUsers;
 
-    public Room(int paramId, final String paramName, final String paramPassword, final String paramOwner)
+    public Room(int paramId, final String paramName, boolean paramPrivate, final String paramOwner)
     {
         roomId = paramId;
         roomName = paramName;
         roomOwner = paramOwner;
-        roomPassword = paramPassword;
         roomMessages = new TreeSet<>();
-        roomUsers = new HashMap<>();
-
-        if (roomPassword == null)
-        {
-            roomType = RoomType.Public;
-        }
-        else
-        {
-            roomType = RoomType.Private;
-        }
-    }
-
-    public Room(int roomId, final String roomName, final String roomOwner)
-    {
-        this(roomId, roomName, null, roomOwner);
+        roomUsers = new HashMap<>();      
+	
+	if (paramPrivate)
+	{
+	    roomType = RoomType.Private;
+	}
+	else
+	{
+	    roomType = RoomType.Public;
+	}
     }
 
     private int roomId;
@@ -87,24 +81,14 @@ public class Room
         return true;
     }
 
-    public boolean isEmpty()
-    {
-        return roomUsers.isEmpty();
-    }
-
-    public boolean isPrivate()
-    {
-        return roomType == RoomType.Private;
-    }
-
     public int getId()
     {
         return roomId;
     }
 
-    void setId(Integer integer)
+    void setId(int paramId)
     {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        roomId = paramId;
     }
 
     public final String getName()
@@ -126,21 +110,16 @@ public class Room
     {
         roomOwner = paramOwner;
     }
-
-    public final String getPassword()
-    {
-        return roomPassword;
-    }
-
+    
     public final HashMap<String, String> getUsers()
     {
         return roomUsers;
     }
 
     @Override
-    public boolean equals(Object o)
+    public boolean equals(final Object other)
     {
-        return o instanceof Room && ((Room) o).roomId == roomId;
+        return other instanceof Room && ((Room)other).roomId == roomId;
     }
 
     @Override

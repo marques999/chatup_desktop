@@ -14,7 +14,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.SwingConstants;
@@ -71,7 +70,7 @@ public class GuiPassword extends JDialog
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 	
-	chatupInstance.joinRoom(roomId, new String(textPassword.getPassword()), (rv) ->
+	chatupInstance.actionJoinRoom(roomId, new String(textPassword.getPassword()), (rv) ->
         {
             if (rv == HttpResponse.SuccessResponse)
             {
@@ -80,7 +79,7 @@ public class GuiPassword extends JDialog
             }
             else
             {
-                JOptionPane.showMessageDialog(this, rv, "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
+                chatupInstance.showError(this, rv);
             }
         });
     }

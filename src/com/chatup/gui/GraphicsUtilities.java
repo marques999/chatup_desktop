@@ -5,39 +5,42 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Graphics;
 import java.awt.Transparency;
+
 import java.net.URL;
+
 import java.io.IOException;
 import java.io.InputStream;
+
 import javax.imageio.ImageIO;
 
 class GraphicsUtilities
 {
-    static BufferedImage loadCompatibleImage(final URL resource) throws IOException
+    static BufferedImage loadCompatibleImage(final URL paramUrl) throws IOException
     {
-        return toCompatibleImage(ImageIO.read(resource));
+        return toCompatibleImage(ImageIO.read(paramUrl));
     }
 
-    static BufferedImage loadCompatibleImage(final InputStream stream) throws IOException
+    static BufferedImage loadCompatibleImage(final InputStream paramStream) throws IOException
     {
-        return toCompatibleImage(ImageIO.read(stream));
+        return toCompatibleImage(ImageIO.read(paramStream));
     }
 
-    private static BufferedImage toCompatibleImage(final BufferedImage image)
+    private static BufferedImage toCompatibleImage(final BufferedImage paramImage)
     {
         if (isHeadless())
         {
-            return image;
+            return paramImage;
         }
 
-        if (image.getColorModel().equals(getGraphicsConfiguration().getColorModel()))
+        if (paramImage.getColorModel().equals(getGraphicsConfiguration().getColorModel()))
         {
-            return image;
+            return paramImage;
         }
 
-        final BufferedImage compatibleImage = getGraphicsConfiguration().createCompatibleImage(image.getWidth(), image.getHeight(), image.getTransparency());
+        final BufferedImage compatibleImage = getGraphicsConfiguration().createCompatibleImage(paramImage.getWidth(), paramImage.getHeight(), paramImage.getTransparency());
         final Graphics g = compatibleImage.getGraphics();
 
-        g.drawImage(image, 0, 0, null);
+        g.drawImage(paramImage, 0, 0, null);
         g.dispose();
 
         return compatibleImage;
@@ -53,12 +56,12 @@ class GraphicsUtilities
         return GraphicsEnvironment.isHeadless();
     }
 
-    static BufferedImage createTranslucentCompatibleImage(int width, int height)
+    static BufferedImage createTranslucentCompatibleImage(int paramWidth, int paramHeight)
     {
-        return getGraphicsConfiguration().createCompatibleImage(width, height, Transparency.TRANSLUCENT);
+        return getGraphicsConfiguration().createCompatibleImage(paramWidth, paramHeight, Transparency.TRANSLUCENT);
     }
 
-    static int[] getPixels(BufferedImage img, int x, int y, int w, int h, int[] pixels)
+    static int[] getPixels(final BufferedImage paramImage, int x, int y, int w, int h, int[] pixels)
     {
         if (w == 0 || h == 0)
         {
@@ -74,13 +77,13 @@ class GraphicsUtilities
             throw new IllegalArgumentException("Pixels array must have a length >= w * h");
         }
 
-        int imageType = img.getType();
+        int imageType = paramImage.getType();
 
         if (imageType == BufferedImage.TYPE_INT_ARGB || imageType == BufferedImage.TYPE_INT_RGB)
         {
-            return (int[]) img.getRaster().getDataElements(x, y, w, h, pixels);
+            return (int[]) paramImage.getRaster().getDataElements(x, y, w, h, pixels);
         }
 
-        return img.getRGB(x, y, w, h, pixels, 0, w);
+        return paramImage.getRGB(x, y, w, h, pixels, 0, w);
     }
 }

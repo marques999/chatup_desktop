@@ -8,16 +8,17 @@ import com.chatup.model.Message;
 import com.chatup.model.SendMessage;
 
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 
 public class MessageService extends HttpService
 {
-    public MessageService(final InetAddress serviceAddress, int servicePort)
+    public MessageService(final InetAddress serviceAddress, int servicePort) throws MalformedURLException
     {
 	super(serviceAddress, ChatupGlobals.MessageServiceUrl, servicePort);
     }
 
     @Override
-    protected HttpResponse executeCallback(String httpMethod, String httpParameters)
+    protected HttpResponse responseHandler(String httpMethod, String httpParameters)
     {
 	return new MessageServiceHandler(httpMethod, httpParameters).processRequest();
     }

@@ -1,7 +1,6 @@
 package com.chatup.gui;
 
 import com.chatup.http.HttpResponse;
-import com.chatup.model.Room;
 import com.chatup.model.RoomType;
 
 import java.awt.Point;
@@ -35,6 +34,13 @@ public class GuiMain extends JFrame
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Chatup Client : ROOMS");
         setIconImage(new javax.swing.ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
+        addComponentListener(new java.awt.event.ComponentAdapter()
+        {
+            public void componentShown(java.awt.event.ComponentEvent evt)
+            {
+                formComponentShown(evt);
+            }
+        });
         addWindowListener(new java.awt.event.WindowAdapter()
         {
             public void windowClosed(java.awt.event.WindowEvent evt)
@@ -148,20 +154,15 @@ public class GuiMain extends JFrame
 
     private void buttonJoinActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonJoinActionPerformed
     {//GEN-HEADEREND:event_buttonJoinActionPerformed
-	int selectedRoomIndex = tableRooms.getSelectedRow();
+	int selectedRoom = tableRooms.getSelectedRow();
 
-	if (selectedRoomIndex < 0)
+	if (selectedRoom < 0)
 	{
 	    JOptionPane.showMessageDialog(this, "Please select a room to join first!", "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
 	}
 	else
 	{
-	    int selectedRoomId = (Integer) tableRooms.getModel().getValueAt(selectedRoomIndex, 0);
-	    
-	    if (selectedRoomId >= 0)
-	    {
-		actionJoin(selectedRoomId);
-	    }
+	    actionJoin(selectedRoom);
 	}
     }//GEN-LAST:event_buttonJoinActionPerformed
 
@@ -188,7 +189,7 @@ public class GuiMain extends JFrame
 	{
 	    final Point selectedPoint = evt.getPoint();
 	    int selectedRow = target.rowAtPoint(selectedPoint);
-	    
+
 	    if (selectedRow >= 0)
 	    {
 		actionJoin(selectedRow);
@@ -200,6 +201,11 @@ public class GuiMain extends JFrame
     {//GEN-HEADEREND:event_buttonJoin1ActionPerformed
 	actionRefresh();
     }//GEN-LAST:event_buttonJoin1ActionPerformed
+
+    private void formComponentShown(java.awt.event.ComponentEvent evt)//GEN-FIRST:event_formComponentShown
+    {//GEN-HEADEREND:event_formComponentShown
+	actionRefresh();
+    }//GEN-LAST:event_formComponentShown
 
     private static GuiMain guimainInstance;
 
@@ -225,10 +231,10 @@ public class GuiMain extends JFrame
     // End of variables declaration//GEN-END:variables
 
     private void actionDisconnect()
-    {	
+    {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 
-	chatupInstance.disconnect((rv) -> 
+	chatupInstance.actionDisconnect((rv) -> 
 	{
 	    if (rv == HttpResponse.SuccessResponse)
 	    {
@@ -237,27 +243,34 @@ public class GuiMain extends JFrame
 	    }
 	    else
 	    {
-		JOptionPane.showMessageDialog(this, rv, "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
+		chatupInstance.showError(this, rv);
 	    }
 	});
     }
-    
+
     protected void actionRefresh()
     {
-	ChatupClient.getInstance().getRooms((rv) -> 
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+
+	tableRooms.setEnabled(false);
+
+	ChatupClient.getInstance().actionGetRooms((rv) -> 
 	{
 	    if (rv != HttpResponse.SuccessResponse)
 	    {
-		JOptionPane.showMessageDialog(this, rv, "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
+		chatupInstance.showError(this, rv);
 	    }
+
+	    tableRooms.setEnabled(true);
 	});
     }
 
     private void actionJoin(int selectedId)
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
-	
-	if (((RoomType)tableRooms.getModel().getValueAt(selectedId, 2)) == RoomType.Private)
+	final RoomType roomType = (RoomType) tableRooms.getModel().getValueAt(selectedId, 2);
+
+	if (roomType == RoomType.Private)
 	{
 	    new GuiPassword(this, selectedId).setVisible(true);
 	}
@@ -265,7 +278,7 @@ public class GuiMain extends JFrame
 	{
 	    int selectedRoom = (Integer) tableRooms.getModel().getValueAt(selectedId, 0);
 
-	    chatupInstance.joinRoom(selectedId, null, (rv) -> 
+	    chatupInstance.actionJoinRoom(selectedRoom, null, (rv) -> 
 	    {
 		if (rv == HttpResponse.SuccessResponse)
 		{
@@ -273,7 +286,7 @@ public class GuiMain extends JFrame
 		}
 		else
 		{
-		    JOptionPane.showMessageDialog(this, rv, "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
+		    chatupInstance.showError(this, rv);
 		}
 	    });
 	}

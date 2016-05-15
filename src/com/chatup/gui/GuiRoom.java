@@ -2,6 +2,7 @@ package com.chatup.gui;
 
 import com.chatup.model.Message;
 import com.chatup.model.Room;
+
 import java.time.Instant;
 
 public class GuiRoom extends javax.swing.JFrame

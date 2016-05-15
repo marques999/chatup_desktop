@@ -23,7 +23,7 @@ class RoomServiceHandler extends HttpDispatcher
 	    return HttpResponse.InvalidCommand;
 	}
 
-	if (ChatupClient.getInstance().insertRooms(jsonArray))
+	if (ChatupClient.getInstance().responseGetRooms(jsonArray))
 	{
 	    return HttpResponse.SuccessResponse;
 	}
@@ -35,7 +35,7 @@ class RoomServiceHandler extends HttpDispatcher
     protected HttpResponse parsePostResponse(JsonValue jsonValue)
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
-	final JsonObject jsonObject = extractResponse(jsonValue, HttpCommands.JoinRoom);
+	final JsonObject jsonObject = extractResponse(jsonValue);
 
 	if (jsonObject == null)
 	{
@@ -56,7 +56,7 @@ class RoomServiceHandler extends HttpDispatcher
     protected HttpResponse parsePutResponse(JsonValue jsonValue)
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
-	final JsonObject jsonObject = extractResponse(jsonValue, HttpCommands.CreateRoom);
+	final JsonObject jsonObject = extractResponse(jsonValue);
 
 	if (jsonObject == null)
 	{
@@ -82,7 +82,7 @@ class RoomServiceHandler extends HttpDispatcher
     protected HttpResponse parseDeleteResponse(JsonValue jsonValue)
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
-	final JsonObject jsonObject = extractResponse(jsonValue, HttpCommands.LeaveRoom);
+	final JsonObject jsonObject = extractResponse(jsonValue);
 
 	if (jsonObject == null)
 	{
@@ -96,10 +96,10 @@ class RoomServiceHandler extends HttpDispatcher
 	    return HttpResponse.InvalidToken;
 	}
 
-	if (chatupInstance.deleteRoom(jsonObject.getInt(HttpFields.RoomId, -1)))
+	/*if (chatupInstance.actionLeaveRoom(jsonObject.getInt(HttpFields.RoomId, -1)))
 	{
 	    return HttpResponse.SuccessResponse;
-	}
+	}*/
 
 	return HttpResponse.OperationFailed;
     }

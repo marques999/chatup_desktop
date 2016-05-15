@@ -5,16 +5,17 @@ import com.chatup.model.UserDisconnect;
 import com.chatup.model.UserLogin;
 
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 
 public class UserService extends HttpService
 {
-    public UserService(final InetAddress serviceAddress, int servicePort)
+    public UserService(final InetAddress serviceAddress, int servicePort) throws MalformedURLException
     {
 	super(serviceAddress, ChatupGlobals.UserServiceUrl, servicePort);
     }
 
     @Override
-    protected HttpResponse executeCallback(final String httpMethod, final String httpParameters)
+    protected HttpResponse responseHandler(final String httpMethod, final String httpParameters)
     {
 	return new UserServiceHandler(httpMethod, httpParameters).processRequest();
     }

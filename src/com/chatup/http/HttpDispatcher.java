@@ -62,16 +62,11 @@ public abstract class HttpDispatcher
 	return null;
     }
 
-    protected final JsonObject extractResponse(final JsonValue jsonObject, final String commandName)
+    protected final JsonObject extractResponse(final JsonValue jsonObject)
     {
-	final JsonValue extractedCommand = jsonObject.asObject().get(commandName);
-
-	if (extractedCommand != null)
+	if (jsonObject.isObject())
 	{
-	    if (extractedCommand.isObject())
-	    {
-		return extractedCommand.asObject();
-	    }
+	    return jsonObject.asObject();
 	}
 
 	return null;

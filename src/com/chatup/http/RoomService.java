@@ -9,16 +9,17 @@ import com.chatup.model.GetRooms;
 import com.chatup.model.JoinRoom;
 
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 
 public class RoomService extends HttpService
 {
-    public RoomService(final InetAddress serviceAddress, int servicePort)
+    public RoomService(final InetAddress serviceAddress, int servicePort) throws MalformedURLException
     {
 	super(serviceAddress, ChatupGlobals.RoomServiceUrl, servicePort);
     }
 
     @Override
-    protected HttpResponse executeCallback(final String httpMethod, final String httpParameters)
+    protected HttpResponse responseHandler(final String httpMethod, final String httpParameters)
     {
 	return new RoomServiceHandler(httpMethod, httpParameters).processRequest();
     }
@@ -33,7 +34,7 @@ public class RoomService extends HttpService
 	POST(new CreateRoom(ChatupClient.getInstance().getToken(), roomName, roomPassword), actionCallback);
     }
 
-    public void deleteRoom(int roomId, final HttpCallback actionCallback)
+    public void leaveRoom(int roomId, final HttpCallback actionCallback)
     {
 	POST(new LeaveRoom(roomId, ChatupClient.getInstance().getToken()), actionCallback);
     }

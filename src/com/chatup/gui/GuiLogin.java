@@ -9,16 +9,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Properties;
-
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 
 public class GuiLogin extends JFrame
 {
     private File propertiesFile;
     private Properties propertiesObject;
-    private String currentUsername = ChatupGlobals.defaultUsername;
-    private String currentPassword = ChatupGlobals.defaultPassword;
+    private String currentUsername = ChatupGlobals.DefaultUsername;
+    private String currentPassword = ChatupGlobals.DefaultPassword;
 
     public static GuiLogin getInstance()
     {
@@ -59,7 +57,7 @@ public class GuiLogin extends JFrame
 
 	if (propertiesFile == null)
 	{
-	    propertiesFile = new File(ChatupGlobals.defaultFilename);
+	    propertiesFile = new File(ChatupGlobals.PreferencesFilename);
 	}
     }
 
@@ -69,16 +67,16 @@ public class GuiLogin extends JFrame
 
 	try (final FileOutputStream fout = new FileOutputStream(propertiesFile))
 	{
-	    propertiesObject.setProperty(ChatupGlobals.fieldUsername, getEncodedString(tfAccount.getText()));
-	    propertiesObject.setProperty(ChatupGlobals.fieldRemember, String.valueOf(checkRemember.isSelected()));
+	    propertiesObject.setProperty(ChatupGlobals.FieldUsername, getEncodedString(tfAccount.getText()));
+	    propertiesObject.setProperty(ChatupGlobals.FieldRemember, String.valueOf(checkRemember.isSelected()));
 
 	    if (rememberPassword)
 	    {
-		propertiesObject.setProperty(ChatupGlobals.fieldPassword, getEncodedString(new String(inputPassword.getPassword())));
+		propertiesObject.setProperty(ChatupGlobals.FieldPassword, getEncodedString(new String(inputPassword.getPassword())));
 	    }
 	    else
 	    {
-		propertiesObject.setProperty(ChatupGlobals.fieldPassword, ChatupGlobals.defaultPassword);
+		propertiesObject.setProperty(ChatupGlobals.FieldPassword, ChatupGlobals.DefaultPassword);
 	    }
 
 	    propertiesObject.store(fout, "chatup");
@@ -98,9 +96,9 @@ public class GuiLogin extends JFrame
 	try (final FileInputStream fin = new FileInputStream(propertiesFile))
 	{
 	    propertiesObject.load(fin);
-	    currentUsername = getDecodedString(propertiesObject.getProperty(ChatupGlobals.fieldUsername, ChatupGlobals.defaultUsername));
-	    currentPassword = getDecodedString(propertiesObject.getProperty(ChatupGlobals.fieldPassword, ChatupGlobals.defaultPassword));
-	    currentRemember = Boolean.valueOf(propertiesObject.getProperty(ChatupGlobals.fieldRemember, ChatupGlobals.defaultRemember));
+	    currentUsername = getDecodedString(propertiesObject.getProperty(ChatupGlobals.FieldUsername, ChatupGlobals.DefaultUsername));
+	    currentPassword = getDecodedString(propertiesObject.getProperty(ChatupGlobals.FieldPassword, ChatupGlobals.DefaultPassword));
+	    currentRemember = Boolean.valueOf(propertiesObject.getProperty(ChatupGlobals.FieldRemember, ChatupGlobals.DefaultRemember));
 	}
 	catch (IOException ex)
 	{
@@ -233,34 +231,38 @@ public class GuiLogin extends JFrame
     {//GEN-HEADEREND:event_checkRememberActionPerformed
     }//GEN-LAST:event_checkRememberActionPerformed
 
+    private void formEnabled(boolean paramEnabled)
+    {
+	inputPassword.setEnabled(paramEnabled);
+	tfAccount.setEnabled(paramEnabled);
+	checkRemember.setEnabled(paramEnabled);
+	buttonLogin.setEnabled(paramEnabled);
+	buttonExit.setEnabled(paramEnabled);
+    }
+    
     private void buttonLoginActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonLoginActionPerformed
     {//GEN-HEADEREND:event_buttonLoginActionPerformed
 	final String userEmail = tfAccount.getText();
 	final String userPassword = new String(inputPassword.getPassword());
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 	
-	chatupInstance.requestLogin(userEmail, userPassword, (rv) -> 
+	formEnabled(false);
+
+	chatupInstance.actionLogin(userEmail, userPassword, (rv) -> 
 	{
 	    if (rv == HttpResponse.SuccessResponse)
 	    {
 		setVisible(false);
 		savePreferences(checkRemember.isSelected());
-		GuiMain.getInstance().actionRefresh();
 		GuiMain.getInstance().setVisible(true);
 	    }
 	    else
 	    {
 		chatupInstance.setLogin(null, null);
-		
-		if (rv == HttpResponse.OperationFailed)
-		{
-		    JOptionPane.showMessageDialog(this, "Invalid username/password combination entered!", "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
-		}
-		else
-		{
-		    JOptionPane.showMessageDialog(this, rv, "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
-		}
+		chatupInstance.showError(this, rv);
 	    }
+	    
+	    formEnabled(true);
 	});
     }//GEN-LAST:event_buttonLoginActionPerformed
 

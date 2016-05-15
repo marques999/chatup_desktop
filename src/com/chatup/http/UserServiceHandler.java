@@ -16,7 +16,7 @@ class UserServiceHandler extends HttpDispatcher
     protected final HttpResponse parsePostResponse(final JsonValue jsonValue)
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
-	final JsonObject jsonObject = extractResponse(jsonValue, HttpCommands.UserLogin);
+	final JsonObject jsonObject = extractResponse(jsonValue);
 
 	if (jsonObject == null)
 	{
@@ -31,7 +31,7 @@ class UserServiceHandler extends HttpDispatcher
 	    return HttpResponse.MissingParameters;
 	}
 
-	if (chatupInstance.userLogin(userEmail, userToken))
+	if (chatupInstance.responseLogin(userEmail, userToken))
 	{
 	    return HttpResponse.SuccessResponse;
 	}
@@ -43,7 +43,7 @@ class UserServiceHandler extends HttpDispatcher
     protected final HttpResponse parseDeleteResponse(final JsonValue jsonValue)
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
-	final JsonObject jsonObject = extractResponse(jsonValue, HttpCommands.UserDisconnect);
+	final JsonObject jsonObject = extractResponse(jsonValue);
 
 	if (jsonObject == null)
 	{

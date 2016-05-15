@@ -1,17 +1,24 @@
 package com.chatup.model;
 
+import com.chatup.http.HttpFields;
+
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
+
 import java.util.List;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 
 import javax.swing.table.AbstractTableModel;
 
 public class RoomModel extends AbstractTableModel
 {
     private final List<Room> rooms;
-    private final HashMap<Integer, Room> roomset;
-
-    private String[] tableColumns = new String[]
+    private final HashSet<Integer> roomset;
+    
+    private final String[] tableColumns = new String[]
     {
 	"ID", "Room", "Type", "Owner"
     };
@@ -19,7 +26,7 @@ public class RoomModel extends AbstractTableModel
     public RoomModel()
     {
 	rooms = new ArrayList<>();
-	roomset = new HashMap<>();
+	roomset = new HashSet<>();
     }
 
     private static final int ROOM_ID = 0;
@@ -37,31 +44,94 @@ public class RoomModel extends AbstractTableModel
 	    switch (columnIndex)
 	    {
 	    case ROOM_ID:
-		selectedRoom.setId((Integer)paramObject);
+		selectedRoom.setId((Integer) paramObject);
 	    case ROOM_NAME:
-		selectedRoom.setName((String)paramObject);
+		selectedRoom.setName((String) paramObject);
 	    case ROOM_TYPE:
-		selectedRoom.setType((RoomType)paramObject);
+		selectedRoom.setType((RoomType) paramObject);
 	    case ROOM_OWNER:
-		selectedRoom.setOwner((String)paramObject);
+		selectedRoom.setOwner((String) paramObject);
 	    }
 
 	    fireTableCellUpdated(rowIndex, columnIndex);
 	}
     }
-
-    public void insertRoom(int roomId, final String paramName, final String paramPassword, final String paramOwner)
+    
+    public int insertRoom(final JsonObject jsonObject)
     {
-	final Room newRoom = new Room(roomId, paramName, paramPassword, paramOwner);
-
-	if (!roomset.containsKey(roomId))
+	int roomId = jsonObject.getInt(HttpFields.RoomId, -1);
+	
+	if (roomId < 0)
 	{
-	    rooms.add(newRoom);
-	    roomset.put(roomId, newRoom);
-	    System.out.println("inserting room " + roomId);
-	    int ultimoIndice = getRowCount() - 1;
-	    fireTableRowsInserted(ultimoIndice, ultimoIndice);
+	    return -1;
 	}
+	
+	if (roomset.contains(roomId))
+	{
+	    return roomId;
+	}
+	
+	final Room newRoom = new Room(
+	    roomId,
+	    jsonObject.getString(HttpFields.RoomName, null),
+	    jsonObject.getBoolean(HttpFields.RoomPrivate, false),
+	    jsonObject.getString(HttpFields.UserToken, null)
+	);
+		
+	rooms.add(newRoom);
+	roomset.add(roomId);
+	fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
+	
+	return roomId;
+    }
+
+    public boolean insertRooms(final JsonArray jsonArray)
+    {
+	boolean operationResult = true;
+	final HashSet<Integer> newRooms = new HashSet<>();
+
+	for (final JsonValue jsonValue : jsonArray)
+	{
+	    if (jsonValue.isObject())
+	    {
+		int roomId = insertRoom(jsonValue.asObject());
+		
+		if (roomId < 0)
+		{
+		    operationResult = false;   
+		}
+		else
+		{
+		    newRooms.add(roomId);
+		}
+	    }
+	    else
+	    {
+		operationResult = false;
+	    }
+	}
+	
+	if (newRooms.size() == roomset.size())
+	{
+	    return operationResult;
+	}
+	
+	for (final Iterator<Integer> i = roomset.iterator(); i.hasNext();)
+	{
+	    final Integer roomId = i.next();
+	    
+	    if (!newRooms.contains(roomId))
+	    {
+		roomset.remove(roomId);
+	    }
+	}
+
+	return operationResult;
+    }
+    
+    public void clearRooms()
+    {
+	rooms.clear();
     }
 
     @Override
@@ -69,7 +139,7 @@ public class RoomModel extends AbstractTableModel
     {
 	return false;
     }
-    
+
     public Room getById(int roomId)
     {
 	return rooms.get(roomId);
