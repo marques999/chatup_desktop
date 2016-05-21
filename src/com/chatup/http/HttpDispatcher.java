@@ -25,11 +25,12 @@ public abstract class HttpDispatcher
 	    return HttpResponse.EmptyResponse;
 	}
 
-	final JsonValue extractedCommand = jsonObject.asObject().get(HttpCommands.OperationSuccess);
+	final JsonObject jsonCommand = jsonObject.asObject();
+	final JsonValue extractedCommand = jsonCommand.get(HttpCommands.OperationSuccess);
 
 	if (extractedCommand == null)
 	{
-	    return HttpResponse.fromString(jsonObject.asObject().getString(HttpCommands.GenericError, null));
+	    return HttpResponse.fromString(jsonCommand.getString(HttpCommands.GenericError, null));
 	}
 
 	switch (httpMethod)

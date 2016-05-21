@@ -1,9 +1,9 @@
 package com.chatup.gui;
 
 import com.chatup.http.HttpResponse;
+import com.chatup.model.Room;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Frame;
@@ -19,13 +19,13 @@ import javax.swing.JPasswordField;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
-public class GuiPassword extends JDialog
+public class GUIPassword extends JDialog
 {
     private int roomId;
 
-    public GuiPassword(final Frame parent, int paramId)
+    public GUIPassword(final Frame paramFrame, int paramId)
     {
-        super(parent, true);
+        super(paramFrame);
 
         final JButton buttonSubmit = new JButton();
         final JButton buttonCancel = new JButton();
@@ -36,11 +36,6 @@ public class GuiPassword extends JDialog
 
         roomId = paramId;
         textPassword = new JPasswordField();
-        setTitle("Private Room");
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        setMinimumSize(new Dimension(300, 124));
-        setPreferredSize(new Dimension(300, 124));
-        setResizable(false);
         panelContainer.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         panelContainer.setLayout(new BorderLayout(0, 10));
         labelPrompt.setFont(new Font("Tahoma", 1, 11));
@@ -59,6 +54,12 @@ public class GuiPassword extends JDialog
         panelContainer.add(panelButtons, BorderLayout.PAGE_END);
         panelContainer.add(textPassword, BorderLayout.CENTER);
         getContentPane().add(panelContainer, BorderLayout.CENTER);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        setModal(true);
+        setResizable(false);
+        setTitle("Private Room");
+        pack();
+        setLocationRelativeTo(paramFrame);
     }
 
     private void buttonCancelActionPerformed(final ActionEvent evt)
@@ -68,14 +69,18 @@ public class GuiPassword extends JDialog
 
     private void buttonSubmitActionPerformed(final ActionEvent evt)
     {
-	final ChatupClient chatupInstance = ChatupClient.getInstance();
-	
-	chatupInstance.actionJoinRoom(roomId, new String(textPassword.getPassword()), (rv) ->
+        final ChatupClient chatupInstance = ChatupClient.getInstance();
+
+        chatupInstance.actionJoinRoom(roomId, new String(textPassword.getPassword()), (rv) ->
         {
+            final Room selectedRoom = chatupInstance.getRoom(roomId);
+
             if (rv == HttpResponse.SuccessResponse)
             {
-                dispose();
-                new GuiRoom(chatupInstance.getRoom(roomId)).setVisible(true);
+                if (selectedRoom != null)
+                {
+                    new GUIRoom(selectedRoom).setVisible(true);
+                }
             }
             else
             {

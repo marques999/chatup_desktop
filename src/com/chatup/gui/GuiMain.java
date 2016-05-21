@@ -1,6 +1,7 @@
 package com.chatup.gui;
 
 import com.chatup.http.HttpResponse;
+import com.chatup.model.Room;
 import com.chatup.model.RoomType;
 
 import java.awt.Point;
@@ -10,9 +11,9 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
-public class GuiMain extends JFrame
+public class GUIMain extends JFrame
 {
-    public GuiMain()
+    public GUIMain()
     {
 	initComponents();
     }
@@ -28,6 +29,7 @@ public class GuiMain extends JFrame
         buttonDisconnect = new javax.swing.JButton();
         buttonSettings = new javax.swing.JButton();
         buttonJoin1 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
         panelRooms = new javax.swing.JScrollPane();
         tableRooms = new javax.swing.JTable();
 
@@ -69,6 +71,8 @@ public class GuiMain extends JFrame
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.ipadx = 4;
         gridBagConstraints.ipady = 2;
@@ -85,7 +89,7 @@ public class GuiMain extends JFrame
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.ipadx = 4;
         gridBagConstraints.ipady = 2;
@@ -95,7 +99,7 @@ public class GuiMain extends JFrame
         buttonSettings.setText("Settings");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.ipadx = 4;
         gridBagConstraints.ipady = 2;
@@ -112,12 +116,29 @@ public class GuiMain extends JFrame
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.ipadx = 4;
         gridBagConstraints.ipady = 2;
         gridBagConstraints.insets = new java.awt.Insets(2, 0, 2, 0);
         panelButtons.add(buttonJoin1, gridBagConstraints);
+
+        jButton1.setText("Create Room");
+        jButton1.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.ipadx = 4;
+        gridBagConstraints.ipady = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 0, 2, 0);
+        panelButtons.add(jButton1, gridBagConstraints);
 
         panelMain.add(panelButtons, java.awt.BorderLayout.LINE_END);
 
@@ -178,7 +199,7 @@ public class GuiMain extends JFrame
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
 	dispose();
-	GuiLogin.getInstance().setVisible(true);
+	GUILogin.getInstance().setVisible(true);
     }//GEN-LAST:event_formWindowClosing
 
     private void tableRoomsMousePressed(java.awt.event.MouseEvent evt)//GEN-FIRST:event_tableRoomsMousePressed
@@ -207,13 +228,18 @@ public class GuiMain extends JFrame
 	actionRefresh();
     }//GEN-LAST:event_formComponentShown
 
-    private static GuiMain guimainInstance;
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jButton1ActionPerformed
+    {//GEN-HEADEREND:event_jButton1ActionPerformed
+        new GUICreateRoom(this).setVisible(true);
+    }//GEN-LAST:event_jButton1ActionPerformed
 
-    public static GuiMain getInstance()
+    private static GUIMain guimainInstance;
+
+    public static GUIMain getInstance()
     {
 	if (guimainInstance == null)
 	{
-	    guimainInstance = new GuiMain();
+	    guimainInstance = new GUIMain();
 	}
 
 	return guimainInstance;
@@ -224,6 +250,7 @@ public class GuiMain extends JFrame
     private javax.swing.JButton buttonJoin;
     private javax.swing.JButton buttonJoin1;
     private javax.swing.JButton buttonSettings;
+    private javax.swing.JButton jButton1;
     private javax.swing.JPanel panelButtons;
     private javax.swing.JPanel panelMain;
     private javax.swing.JScrollPane panelRooms;
@@ -272,23 +299,27 @@ public class GuiMain extends JFrame
 
 	if (roomType == RoomType.Private)
 	{
-	    new GuiPassword(this, selectedId).setVisible(true);
+	    new GUIPassword(this, selectedId).setVisible(true);
 	}
 	else
 	{
-	    int selectedRoom = (Integer) tableRooms.getModel().getValueAt(selectedId, 0);
-
-	    chatupInstance.actionJoinRoom(selectedRoom, null, (rv) -> 
+	    int selectedRoomId = (Integer) tableRooms.getModel().getValueAt(selectedId, 0);   
+	    final Room selectedRoom = chatupInstance.getRoom(selectedRoomId);
+	    chatupInstance.actionJoinRoom(selectedRoomId, null, (rv) ->
 	    {
+		
+		
 		if (rv == HttpResponse.SuccessResponse)
 		{
-		    new GuiRoom(chatupInstance.getRoom(selectedRoom)).setVisible(true);
+			
 		}
 		else
 		{
 		    chatupInstance.showError(this, rv);
 		}
 	    });
+	    
+	    new GUIRoom(selectedRoom).setVisible(true);
 	}
     }
 }

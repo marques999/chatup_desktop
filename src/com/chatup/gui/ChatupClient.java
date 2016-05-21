@@ -37,13 +37,18 @@ public class ChatupClient
 	}
 	catch (MalformedURLException | UnknownHostException ex)
 	{
-	     Logger.getLogger(GuiMain.class.getName()).log(Level.SEVERE, null, ex);
+	     Logger.getLogger(GUIMain.class.getName()).log(Level.SEVERE, null, ex);
 	}
     }
     
     protected void showError(final Component parent, final HttpResponse httpResponse)
     {
 	JOptionPane.showMessageDialog(parent, HttpResponse.getErrorMessage(httpResponse), "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
+    }
+    
+        protected void showError(final Component parent, final String errorMessage)
+    {
+	JOptionPane.showMessageDialog(parent, errorMessage, "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
     }
 
     private MessageService messageService;
@@ -115,10 +120,23 @@ public class ChatupClient
     {
 	roomService.leaveRoom(roomId, httpCallback);
     }
+    
+    public void actionCreateRoom(final String roomName, final String roomPassword)
+    {
+	roomService.createRoom(roomName, roomPassword, (rv) ->
+	{
+	});
+    }
 
     public void actionJoinRoom(int roomid, final String roomPassword, final HttpCallback httpCallback)
     {
-	roomService.joinRoom(roomid, roomPassword, httpCallback);
+	roomService.joinRoom(roomid, roomPassword, (rv) ->
+	{
+	    if (rv == HttpResponse.SuccessResponse)
+	    {
+		
+	    }
+	});
     }
 
     public static void main(String args[])
@@ -132,7 +150,7 @@ public class ChatupClient
 	}
 
 	EventQueue.invokeLater(() -> {
-	    new GuiLogin().setVisible(true);
+	    new GUILogin().setVisible(true);
 	});
     }
 
