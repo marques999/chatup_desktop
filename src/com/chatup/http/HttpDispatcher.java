@@ -7,89 +7,89 @@ import com.eclipsesource.json.JsonValue;
 
 public abstract class HttpDispatcher
 {
-    private final String httpMethod;
-    private final String httpParameters;
+	private final String httpMethod;
+	private final String httpParameters;
 
-    public HttpDispatcher(final String urlMethod, final String urlParameters)
-    {
-	httpMethod = urlMethod;
-	httpParameters = urlParameters;
-    }
-
-    public HttpResponse processRequest()
-    {
-	final JsonValue jsonObject = Json.parse(httpParameters);
-
-	if (jsonObject == null)
+	public HttpDispatcher(final String urlMethod, final String urlParameters)
 	{
-	    return HttpResponse.EmptyResponse;
+		httpMethod = urlMethod;
+		httpParameters = urlParameters;
 	}
 
-	final JsonObject jsonCommand = jsonObject.asObject();
-	final JsonValue extractedCommand = jsonCommand.get(HttpCommands.OperationSuccess);
-
-	if (extractedCommand == null)
+	public HttpResponse processRequest()
 	{
-	    return HttpResponse.fromString(jsonCommand.getString(HttpCommands.GenericError, null));
+		final JsonValue jsonObject = Json.parse(httpParameters);
+
+		if (jsonObject == null)
+		{
+			return HttpResponse.EmptyResponse;
+		}
+
+		final JsonObject jsonCommand = jsonObject.asObject();
+		final JsonValue extractedCommand = jsonCommand.get(HttpCommands.OperationSuccess);
+
+		if (extractedCommand == null)
+		{
+			return HttpResponse.fromString(jsonCommand.getString(HttpCommands.GenericError, null));
+		}
+
+		switch (httpMethod)
+		{
+		case "GET":
+			return parseGetResponse(extractedCommand);
+		case "POST":
+			return parsePostResponse(extractedCommand);
+		case "PUT":
+			return parsePutResponse(extractedCommand);
+		case "DELETE":
+			return parseDeleteResponse(extractedCommand);
+		}
+
+		return HttpResponse.InvalidMethod;
 	}
 
-	switch (httpMethod)
+	protected final JsonArray extractArray(final JsonValue jsonObject, final String commandName)
 	{
-	case "GET":
-	    return parseGetResponse(extractedCommand);
-	case "POST":
-	    return parsePostResponse(extractedCommand);
-	case "PUT":
-	    return parsePutResponse(extractedCommand);
-	case "DELETE":
-	    return parseDeleteResponse(extractedCommand);
+		final JsonValue extractedCommand = jsonObject.asObject().get(commandName);
+
+		if (extractedCommand != null)
+		{
+			if (extractedCommand.isArray())
+			{
+				return extractedCommand.asArray();
+			}
+		}
+
+		return null;
 	}
 
-	return HttpResponse.InvalidMethod;
-    }
-
-    protected final JsonArray extractArray(final JsonValue jsonObject, final String commandName)
-    {
-	final JsonValue extractedCommand = jsonObject.asObject().get(commandName);
-
-	if (extractedCommand != null)
+	protected final JsonObject extractResponse(final JsonValue jsonObject)
 	{
-	    if (extractedCommand.isArray())
-	    {
-		return extractedCommand.asArray();
-	    }
+		if (jsonObject.isObject())
+		{
+			return jsonObject.asObject();
+		}
+
+		return null;
 	}
 
-	return null;
-    }
-
-    protected final JsonObject extractResponse(final JsonValue jsonObject)
-    {
-	if (jsonObject.isObject())
+	protected HttpResponse parseGetResponse(final JsonValue getValues)
 	{
-	    return jsonObject.asObject();
+		return HttpResponse.InvalidMethod;
 	}
 
-	return null;
-    }
+	protected HttpResponse parsePostResponse(final JsonValue jsonValue)
+	{
+		return HttpResponse.InvalidMethod;
+	}
 
-    protected HttpResponse parseGetResponse(final JsonValue getValues)
-    {
-	return HttpResponse.InvalidMethod;
-    }
+	protected HttpResponse parsePutResponse(final JsonValue jsonValue)
+	{
+		return HttpResponse.InvalidMethod;
+	}
 
-    protected HttpResponse parsePostResponse(final JsonValue jsonValue)
-    {
-	return HttpResponse.InvalidMethod;
-    }
-
-    protected HttpResponse parsePutResponse(final JsonValue jsonValue)
-    {
-	return HttpResponse.InvalidMethod;
-    }
-
-    protected HttpResponse parseDeleteResponse(final JsonValue jsonValue)
-    {
-	return HttpResponse.InvalidMethod;
-    }
+	protected HttpResponse parseDeleteResponse(final JsonValue jsonValue)
+	{
+		return HttpResponse.InvalidMethod;
+	}
 }

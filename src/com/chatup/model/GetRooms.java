@@ -6,8 +6,8 @@ import com.chatup.http.HttpRequest;
 
 public class GetRooms extends HttpRequest
 {
-    public GetRooms()
-    {
-        super(HttpMethod.GET, new HttpQuery(new SimplePair[]{}).toString());
-    }
+	public GetRooms()
+	{
+		super(HttpMethod.GET, new HttpQuery(new SimplePair[]{}).toString());
+	}
 }

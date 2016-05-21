@@ -9,11 +9,11 @@ import com.eclipsesource.json.Json;
 
 public class UserDisconnect extends HttpRequest
 {
-    public UserDisconnect(final String userEmail, final String userToken)
-    {
-        super(HttpMethod.DELETE, Json.object()
-            .add(HttpCommands.UserDisconnect, Json.object()
-            .add(HttpFields.UserEmail, userEmail)
-            .add(HttpFields.UserToken, userToken)).toString());
-    }
+	public UserDisconnect(final String userEmail, final String userToken)
+	{
+		super(HttpMethod.DELETE, Json.object()
+			.add(HttpCommands.UserDisconnect, Json.object()
+			.add(HttpFields.UserEmail, userEmail)
+			.add(HttpFields.UserToken, userToken)).toString());
+	}
 }

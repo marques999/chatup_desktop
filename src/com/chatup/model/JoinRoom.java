@@ -9,12 +9,12 @@ import com.eclipsesource.json.Json;
 
 public class JoinRoom extends HttpRequest
 {
-    public JoinRoom(int roomId, final String roomPassword, final String userToken)
-    {
-        super(HttpMethod.POST, Json.object()
-            .add(HttpCommands.JoinRoom, Json.object()
-            .add(HttpFields.RoomId, roomId)
-            .add(HttpFields.RoomPassword, roomPassword)
-            .add(HttpFields.UserToken, userToken)).toString());
-    }
+	public JoinRoom(int roomId, final String roomPassword, final String userToken)
+	{
+		super(HttpMethod.POST, Json.object()
+			.add(HttpCommands.JoinRoom, Json.object()
+			.add(HttpFields.RoomId, roomId)
+			.add(HttpFields.RoomPassword, roomPassword)
+			.add(HttpFields.UserToken, userToken)).toString());
+	}
 }

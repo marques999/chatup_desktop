@@ -7,129 +7,129 @@ import javafx.util.Pair;
 
 public class Room
 {
-    private String roomName;
-    private String roomOwner;
-    private RoomType roomType;
-    private final TreeSet<Message> roomMessages;
-    private final HashMap<String, String> roomUsers;
+	private String roomName;
+	private String roomOwner;
+	private RoomType roomType;
+	private final TreeSet<Message> roomMessages;
+	private final HashMap<String, String> roomUsers;
 
-    public Room(int paramId, final String paramName, boolean paramPrivate, final String paramOwner)
-    {
-        roomId = paramId;
-        roomName = paramName;
-        roomOwner = paramOwner;
-        roomMessages = new TreeSet<>();
-        roomUsers = new HashMap<>();      
-	
-	if (paramPrivate)
+	public Room(int paramId, final String paramName, boolean paramPrivate, final String paramOwner)
 	{
-	    roomType = RoomType.Private;
+		roomId = paramId;
+		roomName = paramName;
+		roomOwner = paramOwner;
+		roomMessages = new TreeSet<>();
+		roomUsers = new HashMap<>();
+
+		if (paramPrivate)
+		{
+			roomType = RoomType.Private;
+		}
+		else
+		{
+			roomType = RoomType.Public;
+		}
 	}
-	else
+
+	private int roomId;
+
+	public void registerMessage(final String userToken, long messageTimestamp, final String messageBody)
 	{
-	    roomType = RoomType.Public;
+		roomMessages.add(new Message(roomId, userToken, messageTimestamp, messageBody));
 	}
-    }
 
-    private int roomId;
+	public Message[] getMessages()
+	{
+		return (Message[]) roomMessages.toArray();
+	}
 
-    public void registerMessage(final String userToken, long messageTimestamp, final String messageBody)
-    {
-        roomMessages.add(new Message(roomId, userToken, messageTimestamp, messageBody));
-    }
+	public final RoomType getType()
+	{
+		return roomType;
+	}
 
-    public Message[] getMessages()
-    {
-        return (Message[]) roomMessages.toArray();
-    }
+	void setType(final RoomType paramType)
+	{
+		roomType = paramType;
+	}
 
-    public final RoomType getType()
-    {
-        return roomType;
-    }
+	public boolean registerUser(final Pair<String, String> userAccount)
+	{
+		final String userToken = userAccount.getKey();
 
-    void setType(final RoomType paramType)
-    {
-        roomType = paramType;
-    }
+		if (roomUsers.containsKey(userToken))
+		{
+			return false;
+		}
 
-    public boolean registerUser(final Pair<String, String> userAccount)
-    {
-        final String userToken = userAccount.getKey();
+		roomUsers.put(userToken, userAccount.getValue());
 
-        if (roomUsers.containsKey(userToken))
-        {
-            return false;
-        }
+		return true;
+	}
 
-        roomUsers.put(userToken, userAccount.getValue());
+	public boolean removeUser(final Pair<String, String> userAccount)
+	{
+		final String userToken = userAccount.getKey();
 
-        return true;
-    }
+		if (!roomUsers.containsKey(userToken))
+		{
+			return false;
+		}
 
-    public boolean removeUser(final Pair<String, String> userAccount)
-    {
-        final String userToken = userAccount.getKey();
+		roomUsers.remove(userToken);
 
-        if (!roomUsers.containsKey(userToken))
-        {
-            return false;
-        }
+		return true;
+	}
 
-        roomUsers.remove(userToken);
+	public int getId()
+	{
+		return roomId;
+	}
 
-        return true;
-    }
+	void setId(int paramId)
+	{
+		roomId = paramId;
+	}
 
-    public int getId()
-    {
-        return roomId;
-    }
+	public final String getName()
+	{
+		return roomName;
+	}
 
-    void setId(int paramId)
-    {
-        roomId = paramId;
-    }
+	void setName(final String paramName)
+	{
+		roomName = paramName;
+	}
 
-    public final String getName()
-    {
-        return roomName;
-    }
+	public final String getOwner()
+	{
+		return roomOwner;
+	}
 
-    void setName(final String paramName)
-    {
-        roomName = paramName;
-    }
+	void setOwner(final String paramOwner)
+	{
+		roomOwner = paramOwner;
+	}
 
-    public final String getOwner()
-    {
-        return roomOwner;
-    }
+	public final HashMap<String, String> getUsers()
+	{
+		return roomUsers;
+	}
 
-    void setOwner(final String paramOwner)
-    {
-        roomOwner = paramOwner;
-    }
-    
-    public final HashMap<String, String> getUsers()
-    {
-        return roomUsers;
-    }
+	@Override
+	public boolean equals(final Object other)
+	{
+		return other instanceof Room && ((Room) other).roomId == roomId;
+	}
 
-    @Override
-    public boolean equals(final Object other)
-    {
-        return other instanceof Room && ((Room)other).roomId == roomId;
-    }
+	@Override
+	public int hashCode()
+	{
+		return roomId;
+	}
 
-    @Override
-    public int hashCode()
-    {
-        return roomId;
-    }
-
-    public boolean hasUser(final String userToken)
-    {
-        return roomUsers.containsKey(userToken);
-    }
+	public boolean hasUser(final String userToken)
+	{
+		return roomUsers.containsKey(userToken);
+	}
 }

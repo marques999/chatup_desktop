@@ -9,8 +9,8 @@ import com.eclipsesource.json.Json;
 
 public class CreateRoom extends HttpRequest
 {
-    public CreateRoom(final String userToken, final String roomName, final String roomPassword)
-    {
+	public CreateRoom(final String userToken, final String roomName, final String roomPassword)
+	{
         super(HttpMethod.PUT, roomPassword == null ?
             Json.object()
                 .add(HttpCommands.CreateRoom, Json.object()
@@ -23,5 +23,5 @@ public class CreateRoom extends HttpRequest
                 .add(HttpFields.RoomName, roomName)
                 .add(HttpFields.RoomPassword, roomPassword)).toString()
             );
-    }
+	}
 }
