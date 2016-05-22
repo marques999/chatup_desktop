@@ -1,23 +1,17 @@
 package com.chatup.gui;
 
-import com.chatup.model.Message;
+import com.chatup.http.HttpResponse;
 import com.chatup.model.Room;
-import java.awt.Color;
+
 import java.io.IOException;
 
 import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.GroupLayout;
-import javax.swing.text.AttributeSet;
+import javax.swing.WindowConstants;
+
 import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
-import javax.swing.text.StyledDocument;
 import javax.swing.text.html.HTMLDocument;
 
 public class GUIRoom extends javax.swing.JFrame
@@ -30,13 +24,13 @@ public class GUIRoom extends javax.swing.JFrame
 	thisRoom = paramRoom;
 	setTitle(paramRoom.getName());
 	setIconImage(new javax.swing.ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
+	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents()
     {
-        java.awt.GridBagConstraints gridBagConstraints;
 
         jPanel1 = new javax.swing.JPanel();
         panelUsers = new javax.swing.JScrollPane();
@@ -50,6 +44,13 @@ public class GUIRoom extends javax.swing.JFrame
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(520, 360));
         setPreferredSize(new java.awt.Dimension(520, 360));
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
+                formWindowClosing(evt);
+            }
+        });
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8));
         jPanel1.setLayout(new java.awt.BorderLayout(8, 8));
@@ -134,9 +135,25 @@ public class GUIRoom extends javax.swing.JFrame
 	{
 	    Logger.getLogger(GUIRoom.class.getName()).log(Level.SEVERE, null, ex);
 	}
-
-
     }//GEN-LAST:event_buttonSendActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
+    {//GEN-HEADEREND:event_formWindowClosing
+        final ChatupClient chatupInstance = ChatupClient.getInstance();
+
+        chatupInstance.actionLeaveRoom(thisRoom.getId(), (rv) -> 
+        {
+            if (rv == HttpResponse.SuccessResponse)
+            {
+                dispose();
+                GUIMain.getInstance().setVisible(true);
+            }
+            else
+            {
+                chatupInstance.showError(this, rv);
+            }
+        });
+    }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonSend;

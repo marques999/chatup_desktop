@@ -10,12 +10,14 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.WindowConstants;
 
 public class GUIMain extends JFrame
 {
     public GUIMain()
     {
 	initComponents();
+	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     }
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -189,7 +191,7 @@ public class GUIMain extends JFrame
 
     private void buttonDisconnectActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonDisconnectActionPerformed
     {//GEN-HEADEREND:event_buttonDisconnectActionPerformed
-	actionDisconnect();
+	dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }//GEN-LAST:event_buttonDisconnectActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosed
@@ -198,8 +200,21 @@ public class GUIMain extends JFrame
 
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
-	dispose();
-	GUILogin.getInstance().setVisible(true);
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+
+	chatupInstance.actionDisconnect((rv) -> 
+	{
+	    if (rv == HttpResponse.SuccessResponse)
+	    {
+		chatupInstance.setLogin(null, null);
+		dispose();
+		GUILogin.getInstance().setVisible(true);
+	    }
+	    else
+	    {
+		chatupInstance.showError(this, rv);
+	    }
+	});
     }//GEN-LAST:event_formWindowClosing
 
     private void tableRoomsMousePressed(java.awt.event.MouseEvent evt)//GEN-FIRST:event_tableRoomsMousePressed
@@ -257,24 +272,6 @@ public class GUIMain extends JFrame
     private javax.swing.JTable tableRooms;
     // End of variables declaration//GEN-END:variables
 
-    private void actionDisconnect()
-    {
-	final ChatupClient chatupInstance = ChatupClient.getInstance();
-
-	chatupInstance.actionDisconnect((rv) -> 
-	{
-	    if (rv == HttpResponse.SuccessResponse)
-	    {
-		chatupInstance.setLogin(null, null);
-		dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-	    }
-	    else
-	    {
-		chatupInstance.showError(this, rv);
-	    }
-	});
-    }
-
     protected void actionRefresh()
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
@@ -296,30 +293,26 @@ public class GUIMain extends JFrame
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 	final RoomType roomType = (RoomType) tableRooms.getModel().getValueAt(selectedId, 2);
-
+	final Room selectedRoom = chatupInstance.getRoom(selectedId);
+	int selectedRoomId = (Integer) tableRooms.getModel().getValueAt(selectedId, 0); 
+	
 	if (roomType == RoomType.Private)
 	{
-	    new GUIPassword(this, selectedId).setVisible(true);
+	    new GUIPassword(this, selectedRoom).setVisible(true);
 	}
 	else
 	{
-	    int selectedRoomId = (Integer) tableRooms.getModel().getValueAt(selectedId, 0);   
-	    final Room selectedRoom = chatupInstance.getRoom(selectedRoomId);
 	    chatupInstance.actionJoinRoom(selectedRoomId, null, (rv) ->
 	    {
-		
-		
 		if (rv == HttpResponse.SuccessResponse)
 		{
-			
+		    new GUIRoom(selectedRoom).setVisible(true);
 		}
 		else
 		{
 		    chatupInstance.showError(this, rv);
 		}
 	    });
-	    
-	    new GUIRoom(selectedRoom).setVisible(true);
 	}
     }
 }

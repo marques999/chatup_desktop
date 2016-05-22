@@ -84,7 +84,7 @@ public class ChatupClient
 	return "marques999";
     }
 
-    protected void setLogin(final String userEmail, final String userPassword)
+    public void setLogin(final String userEmail, final String userPassword)
     {
 	sessionEmail = userEmail;
 	sessionToken = userPassword;
@@ -130,13 +130,7 @@ public class ChatupClient
 
     public void actionJoinRoom(int roomid, final String roomPassword, final HttpCallback httpCallback)
     {
-	roomService.joinRoom(roomid, roomPassword, (rv) ->
-	{
-	    if (rv == HttpResponse.SuccessResponse)
-	    {
-		
-	    }
-	});
+	roomService.joinRoom(roomid, roomPassword, httpCallback);
     }
 
     public static void main(String args[])

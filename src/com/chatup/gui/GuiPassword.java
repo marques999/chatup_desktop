@@ -21,9 +21,9 @@ import javax.swing.WindowConstants;
 
 public class GUIPassword extends JDialog
 {
-    private int roomId;
+    private Room myRoom;
 
-    public GUIPassword(final Frame paramFrame, int paramId)
+    public GUIPassword(final Frame paramFrame, final Room paramRoom)
     {
         super(paramFrame);
 
@@ -34,7 +34,7 @@ public class GUIPassword extends JDialog
         final JPanel panelButtons = new JPanel();
         final JPanel panelContainer = new JPanel();
 
-        roomId = paramId;
+        myRoom = paramRoom;
         textPassword = new JPasswordField();
         panelContainer.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         panelContainer.setLayout(new BorderLayout(0, 10));
@@ -71,21 +71,18 @@ public class GUIPassword extends JDialog
     {
         final ChatupClient chatupInstance = ChatupClient.getInstance();
 
-        chatupInstance.actionJoinRoom(roomId, new String(textPassword.getPassword()), (rv) ->
+        chatupInstance.actionJoinRoom(myRoom.getId(), new String(textPassword.getPassword()), (rv) ->
         {
-            final Room selectedRoom = chatupInstance.getRoom(roomId);
-
             if (rv == HttpResponse.SuccessResponse)
             {
-                if (selectedRoom != null)
-                {
-                    new GUIRoom(selectedRoom).setVisible(true);
-                }
+                new GUIRoom(myRoom).setVisible(true);
             }
             else
             {
                 chatupInstance.showError(this, rv);
             }
+	    
+	    dispose();
         });
     }
 

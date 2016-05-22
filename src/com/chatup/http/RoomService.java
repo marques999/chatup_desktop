@@ -41,6 +41,6 @@ public class RoomService extends HttpService
 
 	public void joinRoom(int roomId, final String roomPassword, final HttpCallback actionCallback)
 	{
-		POST(new JoinRoom(roomId, ChatupClient.getInstance().getToken(), roomPassword), actionCallback);
+		POST(new JoinRoom(roomId, roomPassword, ChatupClient.getInstance().getToken()), actionCallback);
 	}
 }

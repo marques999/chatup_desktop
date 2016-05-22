@@ -8,98 +8,89 @@ import com.eclipsesource.json.JsonValue;
 
 class RoomServiceHandler extends HttpDispatcher
 {
-	RoomServiceHandler(final String httpMethod, final String httpParameters)
+    RoomServiceHandler(final String httpMethod, final String httpParameters)
+    {
+	super(httpMethod, httpParameters);
+    }
+
+    @Override
+    protected HttpResponse parseGetResponse(JsonValue jsonValue)
+    {
+	final JsonArray jsonArray = extractArray(jsonValue, HttpCommands.RetrieveRooms);
+
+	if (jsonArray == null)
 	{
-		super(httpMethod, httpParameters);
+	    return HttpResponse.InvalidCommand;
 	}
 
-	@Override
-	protected HttpResponse parseGetResponse(JsonValue jsonValue)
+	if (ChatupClient.getInstance().responseGetRooms(jsonArray))
 	{
-		final JsonArray jsonArray = extractArray(jsonValue, HttpCommands.RetrieveRooms);
-
-		if (jsonArray == null)
-		{
-			return HttpResponse.InvalidCommand;
-		}
-
-		if (ChatupClient.getInstance().responseGetRooms(jsonArray))
-		{
-			return HttpResponse.SuccessResponse;
-		}
-
-		return HttpResponse.OperationFailed;
+	    return HttpResponse.SuccessResponse;
 	}
 
-	@Override
-	protected HttpResponse parsePostResponse(JsonValue jsonValue)
+	return HttpResponse.OperationFailed;
+    }
+
+    @Override
+    protected HttpResponse parsePostResponse(JsonValue jsonValue)
+    {
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+	final JsonObject jsonObject = extractResponse(jsonValue);
+
+	if (jsonObject == null)
 	{
-		final ChatupClient chatupInstance = ChatupClient.getInstance();
-		final JsonObject jsonObject = extractResponse(jsonValue);
-
-		if (jsonObject == null)
-		{
-			return HttpResponse.InvalidCommand;
-		}
-
-		final String userToken = jsonObject.getString(HttpFields.UserToken, null);
-
-		if (userToken == null && !chatupInstance.getToken().equals(userToken))
-		{
-			return HttpResponse.InvalidToken;
-		}
-
-		return HttpResponse.SuccessResponse;
+		return HttpResponse.InvalidCommand;
 	}
 
-	@Override
-	protected HttpResponse parsePutResponse(JsonValue jsonValue)
+	final String userToken = jsonObject.getString(HttpFields.UserToken, null);
+
+	if (userToken == null && !chatupInstance.getToken().equals(userToken))
 	{
-		final ChatupClient chatupInstance = ChatupClient.getInstance();
-		final JsonObject jsonObject = extractResponse(jsonValue);
-
-		if (jsonObject == null)
-		{
-			return HttpResponse.InvalidCommand;
-		}
-
-		final String userToken = jsonObject.getString(HttpFields.UserToken, null);
-
-		if (userToken == null && !chatupInstance.getToken().equals(userToken))
-		{
-			return HttpResponse.InvalidToken;
-		}
-
-		if (chatupInstance.createRoom(jsonObject.getString(HttpFields.RoomName, null), jsonObject.getString(HttpFields.RoomPassword, null)))
-		{
-			return HttpResponse.SuccessResponse;
-		}
-
-		return HttpResponse.OperationFailed;
+		return HttpResponse.InvalidToken;
 	}
 
-	@Override
-	protected HttpResponse parseDeleteResponse(JsonValue jsonValue)
+	return HttpResponse.SuccessResponse;
+    }
+
+    @Override
+    protected HttpResponse parsePutResponse(JsonValue jsonValue)
+    {
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+	final JsonObject jsonObject = extractResponse(jsonValue);
+
+	if (jsonObject == null)
 	{
-		final ChatupClient chatupInstance = ChatupClient.getInstance();
-		final JsonObject jsonObject = extractResponse(jsonValue);
-
-		if (jsonObject == null)
-		{
-			return HttpResponse.InvalidCommand;
-		}
-
-		final String userToken = jsonObject.getString(HttpFields.UserToken, null);
-
-		if (userToken == null || !chatupInstance.getToken().equals(userToken))
-		{
-			return HttpResponse.InvalidToken;
-		}
-
-		/*
-		 * if (chatupInstance.actionLeaveRoom(jsonObject.getInt(HttpFields.RoomId, -1))) { return HttpResponse.SuccessResponse; }
-		 */
-
-		return HttpResponse.OperationFailed;
+	    return HttpResponse.InvalidCommand;
 	}
+
+	final String userToken = jsonObject.getString(HttpFields.UserToken, null);
+
+	if (userToken == null && !chatupInstance.getToken().equals(userToken))
+	{
+	    return HttpResponse.InvalidToken;
+	}
+
+	return HttpResponse.SuccessResponse;
+    }
+
+    @Override
+    protected HttpResponse parseDeleteResponse(JsonValue jsonValue)
+    {
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+	final JsonObject jsonObject = extractResponse(jsonValue);
+
+	if (jsonObject == null)
+	{
+	    return HttpResponse.InvalidCommand;
+	}
+
+	final String userToken = jsonObject.getString(HttpFields.UserToken, null);
+
+	if (userToken == null || !chatupInstance.getToken().equals(userToken))
+	{
+	    return HttpResponse.InvalidToken;
+	}
+
+	return HttpResponse.SuccessResponse;
+    }
 }
