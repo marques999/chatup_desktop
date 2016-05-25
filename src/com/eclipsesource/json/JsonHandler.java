@@ -25,84 +25,84 @@ package com.eclipsesource.json;
 
 public abstract class JsonHandler<A, O>
 {
-	JsonParser parser;
+    JsonParser parser;
 
-	protected Location getLocation()
-	{
-		return parser.getLocation();
-	}
+    protected Location getLocation()
+    {
+	return parser.getLocation();
+    }
 
-	public void startNull()
-	{
-	}
+    public void startNull()
+    {
+    }
 
-	public void endNull()
-	{
-	}
+    public void endNull()
+    {
+    }
 
-	public void startBoolean()
-	{
-	}
+    public void startBoolean()
+    {
+    }
 
-	public void endBoolean(boolean value)
-	{
-	}
+    public void endBoolean(boolean value)
+    {
+    }
 
-	public void startString()
-	{
-	}
+    public void startString()
+    {
+    }
 
-	public void endString(String string)
-	{
-	}
+    public void endString(String string)
+    {
+    }
 
-	public void startNumber()
-	{
-	}
+    public void startNumber()
+    {
+    }
 
-	public void endNumber(String string)
-	{
-	}
+    public void endNumber(String string)
+    {
+    }
 
-	public A startArray()
-	{
-		return null;
-	}
+    public A startArray()
+    {
+	return null;
+    }
 
-	public void endArray(final A paramArray)
-	{
-	}
+    public void endArray(final A paramArray)
+    {
+    }
 
-	public void startArrayValue(final A paramArray)
-	{
-	}
+    public void startArrayValue(final A paramArray)
+    {
+    }
 
-	public void endArrayValue(final A paramArray)
-	{
-	}
+    public void endArrayValue(final A paramArray)
+    {
+    }
 
-	public O startObject()
-	{
-		return null;
-	}
+    public O startObject()
+    {
+	return null;
+    }
 
-	public void endObject(final O paramObject)
-	{
-	}
+    public void endObject(final O paramObject)
+    {
+    }
 
-	public void startObjectName(final O paramObject)
-	{
-	}
+    public void startObjectName(final O paramObject)
+    {
+    }
 
-	public void endObjectName(final O paramObject, final String paramName)
-	{
-	}
+    public void endObjectName(final O paramObject, final String paramName)
+    {
+    }
 
-	public void startObjectValue(final O paramObject, final String paramName)
-	{
-	}
+    public void startObjectValue(final O paramObject, final String paramName)
+    {
+    }
 
-	public void endObjectValue(final O paramObject, final String paramName)
-	{
-	}
+    public void endObjectValue(final O paramObject, final String paramName)
+    {
+    }
 }

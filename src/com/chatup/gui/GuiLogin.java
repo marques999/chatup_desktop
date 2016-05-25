@@ -1,6 +1,9 @@
 package com.chatup.gui;
 
+import com.chatup.http.HttpFields;
 import com.chatup.http.HttpResponse;
+
+import com.eclipsesource.json.JsonObject;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -39,192 +42,219 @@ public class GUILogin extends JFrame
 
     public static GUILogin getInstance()
     {
-        if (guimainInstance == null)
-        {
-            guimainInstance = new GUILogin();
-        }
+	if (guimainInstance == null)
+	{
+	    guimainInstance = new GUILogin();
+	}
 
-        return guimainInstance;
+	return guimainInstance;
     }
 
     private static GUILogin guimainInstance;
 
     public GUILogin()
     {
-        GridBagConstraints gridBagConstraints;
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Chatup Client : LOGIN");
-        setIconImage(new ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
-        setMinimumSize(new Dimension(300, 500));
-        setResizable(false);
-        panelAvatar.setMinimumSize(new Dimension(0, 256));
-        panelAvatar.setPreferredSize(new Dimension(300, 280));
-        panelAvatar.setLayout(new BorderLayout());
-        labelAvatar.setHorizontalAlignment(SwingConstants.CENTER);
-        labelAvatar.setIcon(new ImageIcon(getClass().getResource("/com/chatup/resources/application-large.png")));
-        panelAvatar.add(labelAvatar, BorderLayout.CENTER);
-        getContentPane().add(panelAvatar, BorderLayout.PAGE_START);
-        panelForm.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
-        panelForm.setLayout(new GridBagLayout());
-        labelUsername.setFont(new Font("Tahoma", 1, 11));
-        labelUsername.setText("Google Account");
-        gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.weightx = 0.1;
-        gridBagConstraints.insets = new Insets(6, 0, 6, 0);
-        panelForm.add(labelUsername, gridBagConstraints);
-        inputAccount.setText("guest@gmail.com");
-        gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        panelForm.add(inputAccount, gridBagConstraints);
-        labelPassword.setFont(new Font("Tahoma", 1, 11));
-        labelPassword.setText("Password");
-        gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new Insets(11, 0, 6, 0);
-        panelForm.add(labelPassword, gridBagConstraints);
-        inputPassword.setText("12345678");
-        gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        panelForm.add(inputPassword, gridBagConstraints);
-        checkRemember.setText("Remember my credentials");
-        gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new Insets(12, 0, 12, 0);
-        panelForm.add(checkRemember, gridBagConstraints);
-        getContentPane().add(panelForm, BorderLayout.CENTER);
-        panelButtons.setBorder(BorderFactory.createEmptyBorder(16, 1, 16, 1));
-        buttonLogin.setText("Login");
-        buttonLogin.addActionListener(this::buttonLoginActionPerformed);
-        panelButtons.add(buttonLogin);
-        buttonExit.setText("Exit");
-        buttonExit.addActionListener(this::buttonExitActionPerformed);
-        panelButtons.add(buttonExit);
-        getContentPane().add(panelButtons, BorderLayout.PAGE_END);
-        pack();
-        setLocationRelativeTo(null);
-        readPreferences();
+	GridBagConstraints gridBagConstraints;
+	setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+	setTitle("Chatup Client : LOGIN");
+	setIconImage(new ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
+	setMinimumSize(new Dimension(300, 500));
+	setResizable(false);
+	panelAvatar.setMinimumSize(new Dimension(0, 256));
+	panelAvatar.setPreferredSize(new Dimension(300, 280));
+	panelAvatar.setLayout(new BorderLayout());
+	labelAvatar.setHorizontalAlignment(SwingConstants.CENTER);
+	labelAvatar.setIcon(new ImageIcon(getClass().getResource("/com/chatup/resources/application-large.png")));
+	panelAvatar.add(labelAvatar, BorderLayout.CENTER);
+	getContentPane().add(panelAvatar, BorderLayout.PAGE_START);
+	panelForm.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
+	panelForm.setLayout(new GridBagLayout());
+	labelUsername.setFont(new Font("Tahoma", 1, 11));
+	labelUsername.setText("Google Account");
+	gridBagConstraints = new GridBagConstraints();
+	gridBagConstraints.weightx = 0.1;
+	gridBagConstraints.insets = new Insets(6, 0, 6, 0);
+	panelForm.add(labelUsername, gridBagConstraints);
+	inputAccount.setText("guest@gmail.com");
+	gridBagConstraints = new GridBagConstraints();
+	gridBagConstraints.gridx = 0;
+	gridBagConstraints.gridy = 1;
+	gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+	panelForm.add(inputAccount, gridBagConstraints);
+	labelPassword.setFont(new Font("Tahoma", 1, 11));
+	labelPassword.setText("Password");
+	gridBagConstraints = new GridBagConstraints();
+	gridBagConstraints.gridx = 0;
+	gridBagConstraints.gridy = 2;
+	gridBagConstraints.insets = new Insets(11, 0, 6, 0);
+	panelForm.add(labelPassword, gridBagConstraints);
+	inputPassword.setText("12345678");
+	gridBagConstraints = new GridBagConstraints();
+	gridBagConstraints.gridx = 0;
+	gridBagConstraints.gridy = 3;
+	gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+	panelForm.add(inputPassword, gridBagConstraints);
+	checkRemember.setText("Remember my credentials");
+	gridBagConstraints = new GridBagConstraints();
+	gridBagConstraints.gridx = 0;
+	gridBagConstraints.gridy = 4;
+	gridBagConstraints.insets = new Insets(12, 0, 12, 0);
+	panelForm.add(checkRemember, gridBagConstraints);
+	getContentPane().add(panelForm, BorderLayout.CENTER);
+	panelButtons.setBorder(BorderFactory.createEmptyBorder(16, 1, 16, 1));
+	buttonLogin.setText("Login");
+	buttonLogin.addActionListener(this::buttonLoginActionPerformed);
+	panelButtons.add(buttonLogin);
+	buttonExit.setText("Exit");
+	buttonExit.addActionListener(this::buttonExitActionPerformed);
+	panelButtons.add(buttonExit);
+	getContentPane().add(panelButtons, BorderLayout.PAGE_END);
+	pack();
+	setLocationRelativeTo(null);
+	readPreferences();
     }
 
     private boolean currentRemember = false;
 
     private final String getEncodedString(final String paramInput)
     {
-        return Base64.getEncoder().encodeToString(paramInput.getBytes(StandardCharsets.UTF_8));
+	return Base64.getEncoder().encodeToString(paramInput.getBytes(StandardCharsets.UTF_8));
     }
 
     private final String getDecodedString(final String paramInput)
     {
-        return new String(Base64.getDecoder().decode(paramInput));
+	return new String(Base64.getDecoder().decode(paramInput));
     }
 
     private void initializePreferences()
     {
-        if (propertiesObject == null)
-        {
-            propertiesObject = new Properties();
-        }
+	if (propertiesObject == null)
+	{
+	    propertiesObject = new Properties();
+	}
 
-        if (propertiesFile == null)
-        {
-            propertiesFile = new File(ChatupGlobals.PreferencesFilename);
-        }
+	if (propertiesFile == null)
+	{
+	    propertiesFile = new File(ChatupGlobals.PreferencesFilename);
+	}
     }
 
     private boolean savePreferences(boolean rememberPassword)
     {
-        initializePreferences();
+	initializePreferences();
 
-        try (final FileOutputStream fout = new FileOutputStream(propertiesFile))
-        {
-            propertiesObject.setProperty(ChatupGlobals.FieldUsername, getEncodedString(inputAccount.getText()));
-            propertiesObject.setProperty(ChatupGlobals.FieldRemember, String.valueOf(checkRemember.isSelected()));
+	try (final FileOutputStream fout = new FileOutputStream(propertiesFile))
+	{
+	    propertiesObject.setProperty(ChatupGlobals.FieldUsername, getEncodedString(inputAccount.getText()));
+	    propertiesObject.setProperty(ChatupGlobals.FieldRemember, String.valueOf(checkRemember.isSelected()));
 
-            if (rememberPassword)
-            {
-                propertiesObject.setProperty(ChatupGlobals.FieldPassword, getEncodedString(new String(inputPassword.getPassword())));
-            }
-            else
-            {
-                propertiesObject.setProperty(ChatupGlobals.FieldPassword, ChatupGlobals.DefaultPassword);
-            }
+	    if (rememberPassword)
+	    {
+		propertiesObject.setProperty(ChatupGlobals.FieldPassword, getEncodedString(new String(inputPassword.getPassword())));
+	    }
+	    else
+	    {
+		propertiesObject.setProperty(ChatupGlobals.FieldPassword, ChatupGlobals.DefaultPassword);
+	    }
 
-            propertiesObject.store(fout, "chatup");
-        }
-        catch (IOException ex)
-        {
-            return false;
-        }
+	    propertiesObject.store(fout, "chatup");
+	}
+	catch (IOException ex)
+	{
+	    return false;
+	}
 
-        return true;
+	return true;
     }
 
     private boolean readPreferences()
     {
-        initializePreferences();
+	initializePreferences();
 
-        try (final FileInputStream fin = new FileInputStream(propertiesFile))
-        {
-            propertiesObject.load(fin);
-            currentUsername = getDecodedString(propertiesObject.getProperty(ChatupGlobals.FieldUsername, ChatupGlobals.DefaultUsername));
-            currentPassword = getDecodedString(propertiesObject.getProperty(ChatupGlobals.FieldPassword, ChatupGlobals.DefaultPassword));
-            currentRemember = Boolean.valueOf(propertiesObject.getProperty(ChatupGlobals.FieldRemember, ChatupGlobals.DefaultRemember));
-        }
-        catch (IOException ex)
-        {
-            return false;
-        }
+	try (final FileInputStream fin = new FileInputStream(propertiesFile))
+	{
+	    propertiesObject.load(fin);
+	    currentUsername = getDecodedString(propertiesObject.getProperty(ChatupGlobals.FieldUsername, ChatupGlobals.DefaultUsername));
+	    currentPassword = getDecodedString(propertiesObject.getProperty(ChatupGlobals.FieldPassword, ChatupGlobals.DefaultPassword));
+	    currentRemember = Boolean.valueOf(propertiesObject.getProperty(ChatupGlobals.FieldRemember, ChatupGlobals.DefaultRemember));
+	}
+	catch (IOException ex)
+	{
+	    return false;
+	}
 
-        inputAccount.setText(currentUsername);
-        inputPassword.setText(currentPassword);
-        checkRemember.setSelected(currentRemember);
+	inputAccount.setText(currentUsername);
+	inputPassword.setText(currentPassword);
+	checkRemember.setSelected(currentRemember);
 
-        return true;
+	return true;
     }
 
     private void buttonExitActionPerformed(final ActionEvent paramEvent)
     {
-        System.exit(0);
+	System.exit(0);
     }
 
     private void formEnabled(boolean paramEnabled)
     {
-        inputPassword.setEnabled(paramEnabled);
-        inputAccount.setEnabled(paramEnabled);
-        checkRemember.setEnabled(paramEnabled);
-        buttonLogin.setEnabled(paramEnabled);
-        buttonExit.setEnabled(paramEnabled);
+	inputPassword.setEnabled(paramEnabled);
+	inputAccount.setEnabled(paramEnabled);
+	checkRemember.setEnabled(paramEnabled);
+	buttonLogin.setEnabled(paramEnabled);
+	buttonExit.setEnabled(paramEnabled);
     }
 
     private void buttonLoginActionPerformed(final ActionEvent paramEvent)
     {
-        final String userEmail = inputAccount.getText();
-        final String userPassword = new String(inputPassword.getPassword());
-        final ChatupClient chatupInstance = ChatupClient.getInstance();
+	final String inputEmail = inputAccount.getText();
+	final String inputToken = new String(inputPassword.getPassword());
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
 
-        formEnabled(false);
+	formEnabled(false);
 
-        chatupInstance.actionLogin(userEmail, userPassword, (rv) -> 
-        {
-            if (rv == HttpResponse.SuccessResponse)
-            {
-                setVisible(false);
-                savePreferences(checkRemember.isSelected());
-                GUIMain.getInstance().setVisible(true);
-            }
-            else
-            {
-                chatupInstance.setLogin(null, null);
-                chatupInstance.showError(this, rv);
-            }
+	chatupInstance.actionUserLogin(inputEmail, inputToken, (jsonValue) ->
+	{
+	    if (chatupInstance.jsonError(this, jsonValue))
+	    {
+	    }
+	    else
+	    {
+		final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
 
-            formEnabled(true);
-        });
+		if (jsonObject == null)
+		{
+		    chatupInstance.showError(this, HttpResponse.EmptyResponse);
+		}
+		else
+		{
+		    final String userEmail = jsonObject.getString(HttpFields.UserEmail, null);
+		    final String userToken = jsonObject.getString(HttpFields.UserToken, null);
+
+		    if (userEmail == null || userToken == null)
+		    {
+			chatupInstance.showError(this, HttpResponse.MissingParameters);
+		    }
+		    else
+		    {
+			final HttpResponse serverResponse = chatupInstance.validateUser(userEmail, userToken);
+
+			if (serverResponse == HttpResponse.SuccessResponse)
+			{
+			    setVisible(false);
+			    savePreferences(checkRemember.isSelected());
+			    GUIMain.getInstance().setVisible(true);
+			}
+			else
+			{
+			    chatupInstance.setLogin(null, null);
+			    chatupInstance.showError(this, serverResponse);
+			}
+		    }
+		}
+	    }
+
+	    formEnabled(true);
+	});
     }
 
     private final JPanel panelAvatar = new JPanel();

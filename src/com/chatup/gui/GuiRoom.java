@@ -1,30 +1,79 @@
 package com.chatup.gui;
 
+import com.chatup.http.HttpFields;
 import com.chatup.http.HttpResponse;
+import com.chatup.http.MessageService;
+
+import com.chatup.model.Message;
 import com.chatup.model.Room;
 
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
+
 import java.io.IOException;
-
+import java.net.MalformedURLException;
 import java.time.Instant;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.WindowConstants;
 
+import javax.swing.ImageIcon;
+import javax.swing.WindowConstants;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.html.HTMLDocument;
 
 public class GUIRoom extends javax.swing.JFrame
 {
-    private final Room thisRoom;
+    private final MessageService messageService;
 
-    public GUIRoom(final Room paramRoom)
+    public GUIRoom(final Room paramRoom, final String serverAddress, int serverPort) throws MalformedURLException
     {
 	initComponents();
+	messageService = new MessageService(serverAddress, serverPort);
 	thisRoom = paramRoom;
 	setTitle(paramRoom.getName());
-	setIconImage(new javax.swing.ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
+	setIconImage(new ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+	actionGetMessages();
+    }
+
+    private final void actionGetMessages()
+    {
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+
+	messageService.getMessages(thisRoom.getId(), (jsonValue) ->
+	{
+	    if (chatupInstance.jsonError(this, jsonValue))
+	    {
+		return;
+	    }
+
+	    final JsonArray jsonArray = chatupInstance.extractArray(jsonValue);
+
+	    if (jsonArray == null)
+	    {
+		chatupInstance.showError(this, HttpResponse.InvalidResponse);
+	    }
+	    else
+	    {
+		for (final JsonValue jsonMessage : jsonArray)
+		{
+		    if (!jsonMessage.isObject())
+		    {
+			continue;
+		    }
+
+		    final JsonObject jsonMessageObject = jsonMessage.asObject();
+
+		    final Message newMessage = new Message(
+			jsonMessageObject.getInt(HttpFields.RoomId, -1),
+			jsonMessageObject.getString(HttpFields.UserToken, null),
+			jsonMessageObject.getLong(HttpFields.Timestamp, 0L),
+			jsonMessageObject.getString(HttpFields.UserMessage, null)
+		    );
+
+		    insertMessage(newMessage);
+		}
+	    }
+	});
     }
 
     @SuppressWarnings("unchecked")
@@ -102,57 +151,43 @@ public class GUIRoom extends javax.swing.JFrame
 
     private void buttonSendActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonSendActionPerformed
     {//GEN-HEADEREND:event_buttonSendActionPerformed
-	try
-	{
-	    final String messageTimestamp = Date.from(Instant.now()).toString();
-	    final String messageAuthor = ChatupClient.getInstance().getUser();
-	    final String messageContents = inputMessage.getText();
-	    final HTMLDocument doc = (HTMLDocument) jEditorPane1.getDocument();
-	    final StringBuilder sb = new StringBuilder();
-	    
-	    if (firstMessage)
-	    {
-		firstMessage = false;
-	    }
-	    else
-	    {
-		sb.append("<br><hr>");
-	    }
-	    
-	    sb.append("<strong>");
-	    sb.append(messageAuthor);
-	    sb.append("</strong>&nbsp<span>");
-	    sb.append(messageTimestamp);
-	    sb.append("</span><br>");
-	    sb.append(messageContents);   
-	    doc.insertAfterEnd(doc.getCharacterElement(doc.getLength()), sb.toString());
-	}
-	catch (BadLocationException ex)
-	{
-	    Logger.getLogger(GUIRoom.class.getName()).log(Level.SEVERE, null, ex);
-	}
-	catch (IOException ex)
-	{
-	    Logger.getLogger(GUIRoom.class.getName()).log(Level.SEVERE, null, ex);
-	}
+	sendMessage(new Message(
+	    thisRoom.getId(),
+	    ChatupClient.getInstance().getToken(),
+	    Instant.now().toEpochMilli(),
+	    inputMessage.getText()
+	));
     }//GEN-LAST:event_buttonSendActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
-        final ChatupClient chatupInstance = ChatupClient.getInstance();
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
 
-        chatupInstance.actionLeaveRoom(thisRoom.getId(), (rv) -> 
-        {
-            if (rv == HttpResponse.SuccessResponse)
-            {
-                dispose();
-                GUIMain.getInstance().setVisible(true);
-            }
-            else
-            {
-                chatupInstance.showError(this, rv);
-            }
-        });
+	chatupInstance.actionLeaveRoom(thisRoom.getId(), (jsonValue) ->
+	{
+	    final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
+
+	    if (jsonObject == null)
+	    {
+		chatupInstance.showError(this, HttpResponse.InvalidCommand);
+	    }
+	    else if (chatupInstance.jsonError(this, jsonObject))
+	    {
+	    }
+	    else
+	    {
+		final String userToken = jsonObject.getString(HttpFields.UserToken, null);
+
+		if (ChatupClient.getInstance().validateToken(userToken))
+		{
+		    dispose();
+		}
+		else
+		{
+		    chatupInstance.showError(this, HttpResponse.InvalidToken);
+		}
+	    }
+	});
     }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -165,4 +200,63 @@ public class GUIRoom extends javax.swing.JFrame
     private javax.swing.JPanel panelForm;
     private javax.swing.JScrollPane panelUsers;
     // End of variables declaration//GEN-END:variables
+
+    private void sendMessage(final Message paramMessage)
+    {
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+
+	messageService.sendMessage(paramMessage, (jsonValue) ->
+	{
+	    final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
+
+	    if (jsonObject == null)
+	    {
+		chatupInstance.showError(this, HttpResponse.InvalidCommand);
+	    }
+	    else if (chatupInstance.jsonError(this, jsonObject))
+	    {
+	    }
+	    else
+	    {
+		insertMessage(new Message(
+		    jsonObject.getInt(HttpFields.RoomId, -1),
+		    jsonObject.getString(HttpFields.UserToken, null),
+		    jsonObject.getLong(HttpFields.Timestamp, 0L),
+		    jsonObject.getString(HttpFields.UserMessage, null)
+		));
+	    }
+	});
+    }
+
+    private void insertMessage(Message paramMessage)
+    {
+	final HTMLDocument doc = (HTMLDocument) jEditorPane1.getDocument();
+	final StringBuilder sb = new StringBuilder();
+
+	if (firstMessage)
+	{
+	    firstMessage = false;
+	}
+	else
+	{
+	    sb.append("<br><hr>");
+	}
+
+	sb.append("<strong>");
+	sb.append(paramMessage.getSender());
+	sb.append("</strong> @ <span>");
+	sb.append(ChatupGlobals.formatDate(paramMessage.getTimestamp()));
+	sb.append("</span><br>");
+	sb.append(paramMessage.getContents());
+
+	try
+	{
+	    doc.insertAfterEnd(doc.getCharacterElement(doc.getLength()), sb.toString());
+	}
+	catch (BadLocationException | IOException ex)
+	{
+	}
+    }
+
+    private final Room thisRoom;
 }

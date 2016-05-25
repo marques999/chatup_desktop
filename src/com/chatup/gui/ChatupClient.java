@@ -2,13 +2,15 @@ package com.chatup.gui;
 
 import com.chatup.http.HttpCallback;
 import com.chatup.http.HttpResponse;
-import com.chatup.http.MessageService;
 import com.chatup.http.UserService;
 import com.chatup.http.RoomService;
-import com.chatup.model.Message;
+
 import com.chatup.model.Room;
 import com.chatup.model.RoomModel;
+
 import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
 
 import java.awt.Component;
 import java.awt.EventQueue;
@@ -17,6 +19,7 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,31 +35,68 @@ public class ChatupClient
     {
 	try
 	{
-	    roomService = new RoomService(InetAddress.getLocalHost(), 8080);
-	    userService = new UserService(InetAddress.getLocalHost(), 8080);
+	    roomService = new RoomService(InetAddress.getLocalHost().getHostName(), 8080);
+	    userService = new UserService(InetAddress.getLocalHost().getHostName(), 8080);
+	    rooms = new HashMap<>();
 	}
 	catch (MalformedURLException | UnknownHostException ex)
 	{
-	     Logger.getLogger(GUIMain.class.getName()).log(Level.SEVERE, null, ex);
+	    Logger.getLogger(GUIMain.class.getName()).log(Level.SEVERE, null, ex);
 	}
     }
-    
+
+    boolean jsonError(final Component parent, final JsonValue jsonValue)
+    {
+	boolean receivedError = false;
+
+	if (jsonValue == null)
+	{
+	   showError(parent, HttpResponse.InvalidCommand);
+	   receivedError = true;
+	}
+	else
+	{
+	    if (jsonValue.isObject())
+	    {
+		final JsonObject jsonObject = jsonValue.asObject();
+		final String errorMessage = jsonObject.getString("error", null);
+
+		if (errorMessage != null)
+		{
+		    showError(parent, HttpResponse.fromString(errorMessage));
+		    receivedError = true;
+		}
+	    }
+	}
+
+	return receivedError;
+    }
+
     protected void showError(final Component parent, final HttpResponse httpResponse)
     {
 	JOptionPane.showMessageDialog(parent, HttpResponse.getErrorMessage(httpResponse), "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
     }
-    
-        protected void showError(final Component parent, final String errorMessage)
+
+    protected void showError(final Component parent, final String errorMessage)
     {
 	JOptionPane.showMessageDialog(parent, errorMessage, "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
     }
 
-    private MessageService messageService;
+    protected JsonArray extractArray(final JsonValue jsonObject)
+    {
+	return jsonObject.isArray() ? jsonObject.asArray() : null;
+    }
+
+    protected JsonObject extractResponse(final JsonValue jsonObject)
+    {
+	return jsonObject.isObject() ? jsonObject.asObject() : null;
+    }
+
+    private HashMap<Integer, GUIRoom> rooms;
     private RoomService roomService;
     private UserService userService;
     private String sessionToken;
     private String sessionEmail;
-
     private RoomModel myRooms = new RoomModel();
 
     public RoomModel getRooms()
@@ -74,11 +114,16 @@ public class ChatupClient
 	return instance;
     }
 
-    public boolean responseGetRooms(final JsonArray jsonArray)
+    public HttpResponse responseGetRooms(final JsonArray jsonArray)
     {
-	return myRooms.insertRooms(jsonArray);
+	if (myRooms.insertRooms(jsonArray))
+	{
+	    return HttpResponse.SuccessResponse;
+	}
+
+	return HttpResponse.OperationFailed;
     }
-   
+
     public String getUser()
     {
 	return "marques999";
@@ -90,28 +135,28 @@ public class ChatupClient
 	sessionToken = userPassword;
     }
 
-    public boolean responseLogin(final String userEmail, final String userToken)
+    public HttpResponse validateUser(String userEmail, String userToken)
     {
-	if (sessionEmail.equals(userEmail))
+	if (userEmail.equals(sessionEmail) && userToken.equals(sessionToken))
 	{
-	    sessionToken = userToken;
+	    return HttpResponse.SuccessResponse;
 	}
 
-	return true;
+	return HttpResponse.OperationFailed;
     }
 
-    public void actionLogin(final String userEmail, final String userToken, final HttpCallback actionCallback)
+    public void actionGetRooms(final HttpCallback httpCallback)
+    {
+	roomService.getRooms(sessionToken, httpCallback);
+    }
+
+    public void actionUserLogin(final String userEmail, final String userToken, final HttpCallback actionCallback)
     {
 	setLogin(userEmail, userToken);
 	userService.userLogin(userEmail, userToken, actionCallback);
     }
 
-    public void actionGetRooms(final HttpCallback httpCallback)
-    {
-	roomService.getRooms(httpCallback);
-    }
-
-    public void actionDisconnect(final HttpCallback httpCallback)
+    public void actionUserDisconnect(final HttpCallback httpCallback)
     {
 	userService.userDisconnect(sessionEmail, sessionToken, httpCallback);
     }
@@ -120,12 +165,10 @@ public class ChatupClient
     {
 	roomService.leaveRoom(roomId, httpCallback);
     }
-    
-    public void actionCreateRoom(final String roomName, final String roomPassword)
+
+    public void actionCreateRoom(final String roomName, final String roomPassword, final HttpCallback httpCallback)
     {
-	roomService.createRoom(roomName, roomPassword, (rv) ->
-	{
-	});
+	roomService.createRoom(roomName, roomPassword, httpCallback);
     }
 
     public void actionJoinRoom(int roomid, final String roomPassword, final HttpCallback httpCallback)
@@ -148,28 +191,28 @@ public class ChatupClient
 	});
     }
 
-    public final boolean insertMessage(final Message paramMessage)
-    {
-	return true;
-    }
-
     public final String getToken()
     {
 	return sessionToken;
     }
 
-    public boolean userDisconnect(String userEmail, String userToken)
+    public int createRoom(final JsonObject jsonObject)
     {
-	return userEmail.equals(sessionEmail) && userToken.equals(sessionToken);
-    }
-
-    public boolean createRoom(String string, String string0)
-    {
-	throw new UnsupportedOperationException("Not supported yet.");
+	return myRooms.insertRoom(jsonObject);
     }
 
     protected final Room getRoom(int roomId)
     {
 	return myRooms.getById(roomId);
+    }
+
+    void insertRoom(int id, GUIRoom currentRoom)
+    {
+	rooms.put(id, currentRoom);
+    }
+
+    public boolean validateToken(final String userToken)
+    {
+	return userToken != null && sessionToken.equals(userToken);
     }
 }

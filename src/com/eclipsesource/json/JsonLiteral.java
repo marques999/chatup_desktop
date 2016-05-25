@@ -27,85 +27,85 @@ import java.io.IOException;
 
 class JsonLiteral extends JsonValue
 {
-	private final String value;
-	private final boolean isNull;
-	private final boolean isTrue;
-	private final boolean isFalse;
+    private final String value;
+    private final boolean isNull;
+    private final boolean isTrue;
+    private final boolean isFalse;
 
-	JsonLiteral(final String paramValue)
+    JsonLiteral(final String paramValue)
+    {
+	value = paramValue;
+	isNull = "null".equals(paramValue);
+	isTrue = "true".equals(paramValue);
+	isFalse = "false".equals(paramValue);
+    }
+
+    @Override
+    void write(final JsonWriter paramWriter) throws IOException
+    {
+	paramWriter.writeLiteral(value);
+    }
+
+    @Override
+    public String toString()
+    {
+	return value;
+    }
+
+    @Override
+    public int hashCode()
+    {
+	return value.hashCode();
+    }
+
+    @Override
+    public boolean isNull()
+    {
+	return isNull;
+    }
+
+    @Override
+    public boolean isTrue()
+    {
+	return isTrue;
+    }
+
+    @Override
+    public boolean isFalse()
+    {
+	return isFalse;
+    }
+
+    @Override
+    public boolean isBoolean()
+    {
+	return isTrue || isFalse;
+    }
+
+    @Override
+    public boolean asBoolean()
+    {
+	return isNull ? super.asBoolean() : isTrue;
+    }
+
+    @Override
+    public boolean equals(final Object paramObject)
+    {
+	if (this == paramObject)
 	{
-		value = paramValue;
-		isNull = "null".equals(paramValue);
-		isTrue = "true".equals(paramValue);
-		isFalse = "false".equals(paramValue);
+	    return true;
 	}
 
-	@Override
-	void write(final JsonWriter paramWriter) throws IOException
+	if (paramObject == null)
 	{
-		paramWriter.writeLiteral(value);
+	    return false;
 	}
 
-	@Override
-	public String toString()
+	if (getClass() != paramObject.getClass())
 	{
-		return value;
+	    return false;
 	}
 
-	@Override
-	public int hashCode()
-	{
-		return value.hashCode();
-	}
-
-	@Override
-	public boolean isNull()
-	{
-		return isNull;
-	}
-
-	@Override
-	public boolean isTrue()
-	{
-		return isTrue;
-	}
-
-	@Override
-	public boolean isFalse()
-	{
-		return isFalse;
-	}
-
-	@Override
-	public boolean isBoolean()
-	{
-		return isTrue || isFalse;
-	}
-
-	@Override
-	public boolean asBoolean()
-	{
-		return isNull ? super.asBoolean() : isTrue;
-	}
-
-	@Override
-	public boolean equals(final Object paramObject)
-	{
-		if (this == paramObject)
-		{
-			return true;
-		}
-
-		if (paramObject == null)
-		{
-			return false;
-		}
-
-		if (getClass() != paramObject.getClass())
-		{
-			return false;
-		}
-
-		return value.equals(((JsonLiteral) paramObject).value);
-	}
+	return value.equals(((JsonLiteral) paramObject).value);
+    }
 }

@@ -9,11 +9,11 @@ import com.eclipsesource.json.Json;
 
 public class LeaveRoom extends HttpRequest
 {
-	public LeaveRoom(int roomId, final String userToken)
-	{
-		super(HttpMethod.DELETE, Json.object()
-			.add(HttpCommands.LeaveRoom, Json.object()
-			.add(HttpFields.RoomId, roomId)
-			.add(HttpFields.UserToken, userToken)).toString());
-	}
+    public LeaveRoom(int roomId, final String userToken)
+    {
+	super(HttpMethod.DELETE, Json.object()
+	    .add(HttpCommands.LeaveRoom, Json.object()
+	    .add(HttpFields.RoomId, roomId)
+	    .add(HttpFields.UserToken, userToken)).toString());
+    }
 }

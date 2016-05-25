@@ -25,48 +25,48 @@ package com.eclipsesource.json;
 
 public class Location
 {
-	public int offset;
-	public int line;
-	public int column;
+    public int offset;
+    public int line;
+    public int column;
 
-	Location(int paramOffset, int paramLine, int paramColumn)
+    Location(int paramOffset, int paramLine, int paramColumn)
+    {
+	offset = paramOffset;
+	column = paramColumn;
+	line = paramLine;
+    }
+
+    @Override
+    public String toString()
+    {
+	return line + ":" + column;
+    }
+
+    @Override
+    public int hashCode()
+    {
+	return offset;
+    }
+
+    @Override
+    public boolean equals(final Object paramObject)
+    {
+	if (this == paramObject)
 	{
-		offset = paramOffset;
-		column = paramColumn;
-		line = paramLine;
+	    return true;
 	}
 
-	@Override
-	public String toString()
+	if (paramObject == null)
 	{
-		return line + ":" + column;
+	    return false;
 	}
 
-	@Override
-	public int hashCode()
+	if (getClass() != paramObject.getClass())
 	{
-		return offset;
+	    return false;
 	}
 
-	@Override
-	public boolean equals(final Object paramObject)
-	{
-		if (this == paramObject)
-		{
-			return true;
-		}
-
-		if (paramObject == null)
-		{
-			return false;
-		}
-
-		if (getClass() != paramObject.getClass())
-		{
-			return false;
-		}
-
-		Location other = (Location) paramObject;
-		return offset == other.offset && column == other.column && line == other.line;
-	}
+	Location other = (Location) paramObject;
+	return offset == other.offset && column == other.column && line == other.line;
+    }
 }

@@ -7,12 +7,12 @@ import com.chatup.http.HttpRequest;
 
 public class GetMessages extends HttpRequest
 {
-	public GetMessages(int paramId, final String paramToken)
+    public GetMessages(int roomId, final String userToken)
+    {
+	super(HttpMethod.GET, new HttpQuery(new SimplePair[]
 	{
-		super(HttpMethod.GET, new HttpQuery(new SimplePair[]
-		{
-			new SimplePair(HttpFields.RoomId, Integer.toString(paramId)),
-			new SimplePair(HttpFields.UserToken, paramToken),
-		}).toString());
-	}
+	    new SimplePair(HttpFields.RoomId, Integer.toString(roomId)),
+	    new SimplePair(HttpFields.UserToken, userToken),
+	}).toString());
+    }
 }

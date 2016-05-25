@@ -9,12 +9,12 @@ import com.eclipsesource.json.Json;
 
 public class SendMessage extends HttpRequest
 {
-	public SendMessage(final Message paramMessage)
-	{
-		super(HttpMethod.POST, Json.object()
-			.add(HttpCommands.SendMessage, Json.object()
-			.add(HttpFields.RoomId, paramMessage.getRoomId())
-			.add(HttpFields.UserToken, paramMessage.getSender())
-			.add(HttpFields.UserMessage, paramMessage.getMessage())).toString());
-	}
+    public SendMessage(final Message paramMessage)
+    {
+	super(HttpMethod.POST, Json.object()
+	    .add(HttpCommands.SendMessage, Json.object()
+	    .add(HttpFields.RoomId, paramMessage.getRoomId())
+	    .add(HttpFields.UserToken, paramMessage.getSender())
+	    .add(HttpFields.UserMessage, paramMessage.getContents())).toString());
+    }
 }

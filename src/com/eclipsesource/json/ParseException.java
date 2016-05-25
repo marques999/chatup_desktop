@@ -25,16 +25,16 @@ package com.eclipsesource.json;
 
 public class ParseException extends RuntimeException
 {
-	private final Location location;
+    private final Location location;
 
-	ParseException(final String paramMessage, final Location paramLocation)
-	{
-		super(paramMessage + " at " + paramLocation);
-		location = paramLocation;
-	}
+    ParseException(final String paramMessage, final Location paramLocation)
+    {
+	super(paramMessage + " at " + paramLocation);
+	location = paramLocation;
+    }
 
-	public Location getLocation()
-	{
-		return location;
-	}
+    public Location getLocation()
+    {
+	return location;
+    }
 }

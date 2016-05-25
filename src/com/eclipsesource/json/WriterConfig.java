@@ -27,16 +27,15 @@ import java.io.Writer;
 
 public abstract class WriterConfig
 {
-	public static WriterConfig MINIMAL = new WriterConfig()
+    public static WriterConfig MINIMAL = new WriterConfig()
+    {
+	@Override
+	JsonWriter createWriter(final Writer paramWriter)
 	{
-		@Override
-		JsonWriter createWriter(final Writer paramWriter)
-		{
-			return new JsonWriter(paramWriter);
-		}
-	};
+	    return new JsonWriter(paramWriter);
+	}
+    };
 
-	public static WriterConfig PRETTY_PRINT = PrettyPrint.indentWithSpaces(2);
-
-	abstract JsonWriter createWriter(final Writer paramWriter);
+    public static WriterConfig PRETTY_PRINT = PrettyPrint.indentWithSpaces(2);
+    abstract JsonWriter createWriter(final Writer paramWriter);
 }

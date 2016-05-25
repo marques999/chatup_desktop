@@ -27,84 +27,84 @@ import java.io.IOException;
 
 class JsonNumber extends JsonValue
 {
-	private final String string;
+    private final String string;
 
-	JsonNumber(final String paramString)
+    JsonNumber(final String paramString)
+    {
+	if (paramString == null)
 	{
-		if (paramString == null)
-		{
-			throw new NullPointerException("string is null");
-		}
-
-		string = paramString;
+	    throw new NullPointerException("string is null");
 	}
 
-	@Override
-	public String toString()
+	string = paramString;
+    }
+
+    @Override
+    public String toString()
+    {
+	return string;
+    }
+
+    @Override
+    void write(final JsonWriter paramWriter) throws IOException
+    {
+	paramWriter.writeNumber(string);
+    }
+
+    @Override
+    public boolean isNumber()
+    {
+	return true;
+    }
+
+    @Override
+    public int asInt()
+    {
+	return Integer.parseInt(string, 10);
+    }
+
+    @Override
+    public long asLong()
+    {
+	return Long.parseLong(string, 10);
+    }
+
+    @Override
+    public float asFloat()
+    {
+	return Float.parseFloat(string);
+    }
+
+    @Override
+    public double asDouble()
+    {
+	return Double.parseDouble(string);
+    }
+
+    @Override
+    public int hashCode()
+    {
+	return string.hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object paramObject)
+    {
+	if (this == paramObject)
 	{
-		return string;
+	    return true;
 	}
 
-	@Override
-	void write(final JsonWriter paramWriter) throws IOException
+	if (paramObject == null)
 	{
-		paramWriter.writeNumber(string);
+	    return false;
 	}
 
-	@Override
-	public boolean isNumber()
+	if (getClass() != paramObject.getClass())
 	{
-		return true;
+	    return false;
 	}
 
-	@Override
-	public int asInt()
-	{
-		return Integer.parseInt(string, 10);
-	}
-
-	@Override
-	public long asLong()
-	{
-		return Long.parseLong(string, 10);
-	}
-
-	@Override
-	public float asFloat()
-	{
-		return Float.parseFloat(string);
-	}
-
-	@Override
-	public double asDouble()
-	{
-		return Double.parseDouble(string);
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return string.hashCode();
-	}
-
-	@Override
-	public boolean equals(final Object paramObject)
-	{
-		if (this == paramObject)
-		{
-			return true;
-		}
-
-		if (paramObject == null)
-		{
-			return false;
-		}
-
-		if (getClass() != paramObject.getClass())
-		{
-			return false;
-		}
-
-		return string.equals(((JsonNumber) paramObject).string);
-	}
+	return string.equals(((JsonNumber) paramObject).string);
+    }
 }

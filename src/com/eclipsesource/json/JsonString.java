@@ -27,60 +27,60 @@ import java.io.IOException;
 
 class JsonString extends JsonValue
 {
-	private final String string;
+    private final String string;
 
-	JsonString(final String paramString)
+    JsonString(final String paramString)
+    {
+	if (paramString == null)
 	{
-		if (paramString == null)
-		{
-			throw new NullPointerException("string is null");
-		}
-
-		string = paramString;
+	    throw new NullPointerException("string is null");
 	}
 
-	@Override
-	void write(final JsonWriter paramWriter) throws IOException
+	string = paramString;
+    }
+
+    @Override
+    void write(final JsonWriter paramWriter) throws IOException
+    {
+	paramWriter.writeString(string);
+    }
+
+    @Override
+    public boolean isString()
+    {
+	return true;
+    }
+
+    @Override
+    public String asString()
+    {
+	return string;
+    }
+
+    @Override
+    public int hashCode()
+    {
+	return string.hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object paramObject)
+    {
+	if (this == paramObject)
 	{
-		paramWriter.writeString(string);
+	    return true;
 	}
 
-	@Override
-	public boolean isString()
+	if (paramObject == null)
 	{
-		return true;
+	    return false;
 	}
 
-	@Override
-	public String asString()
+	if (getClass() != paramObject.getClass())
 	{
-		return string;
+	    return false;
 	}
 
-	@Override
-	public int hashCode()
-	{
-		return string.hashCode();
-	}
-
-	@Override
-	public boolean equals(final Object paramObject)
-	{
-		if (this == paramObject)
-		{
-			return true;
-		}
-
-		if (paramObject == null)
-		{
-			return false;
-		}
-
-		if (getClass() != paramObject.getClass())
-		{
-			return false;
-		}
-
-		return string.equals(((JsonString) paramObject).string);
-	}
+	return string.equals(((JsonString) paramObject).string);
+    }
 }

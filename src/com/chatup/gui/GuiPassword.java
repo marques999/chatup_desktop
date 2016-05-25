@@ -1,13 +1,18 @@
 package com.chatup.gui;
 
+import com.chatup.http.HttpFields;
 import com.chatup.http.HttpResponse;
 import com.chatup.model.Room;
+
+import com.eclipsesource.json.JsonObject;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
+
+import java.net.MalformedURLException;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -21,21 +26,10 @@ import javax.swing.WindowConstants;
 
 public class GUIPassword extends JDialog
 {
-    private Room myRoom;
-
     public GUIPassword(final Frame paramFrame, final Room paramRoom)
     {
         super(paramFrame);
-
-        final JButton buttonSubmit = new JButton();
-        final JButton buttonCancel = new JButton();
-        final ButtonGroup buttonGroup1 = new ButtonGroup();
-        final JLabel labelPrompt = new JLabel();
-        final JPanel panelButtons = new JPanel();
-        final JPanel panelContainer = new JPanel();
-
-        myRoom = paramRoom;
-        textPassword = new JPasswordField();
+        currentRoom = paramRoom;
         panelContainer.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         panelContainer.setLayout(new BorderLayout(0, 10));
         labelPrompt.setFont(new Font("Tahoma", 1, 11));
@@ -70,21 +64,63 @@ public class GUIPassword extends JDialog
     private void buttonSubmitActionPerformed(final ActionEvent evt)
     {
         final ChatupClient chatupInstance = ChatupClient.getInstance();
+	final String roomPassword = new String(textPassword.getPassword());
 
-        chatupInstance.actionJoinRoom(myRoom.getId(), new String(textPassword.getPassword()), (rv) ->
+        chatupInstance.actionJoinRoom(currentRoom.getId(), roomPassword, (jsonValue) ->
         {
-            if (rv == HttpResponse.SuccessResponse)
-            {
-                new GUIRoom(myRoom).setVisible(true);
-            }
-            else
-            {
-                chatupInstance.showError(this, rv);
-            }
-	    
-	    dispose();
+	    if (chatupInstance.jsonError(this, jsonValue))
+	    {
+		return;
+	    }
+
+	    final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
+
+	    if (jsonObject == null)
+	    {
+		chatupInstance.showError(this, HttpResponse.EmptyResponse);
+	    }
+	    else
+	    {
+		final String userToken = jsonObject.getString(HttpFields.UserToken, null);
+
+		if (ChatupClient.getInstance().validateToken(userToken))
+		{
+		    final String serverAddress = jsonObject.getString(HttpFields.ServerAddress, null);
+		    int serverPort = jsonObject.getInt(HttpFields.ServerPort, -1);
+
+		    if (serverAddress == null || serverPort < 0 || serverAddress.isEmpty())
+		    {
+			chatupInstance.showError(this, HttpResponse.MissingParameters);
+		    }
+		    else
+		    {
+			try
+			{
+			    GUIRoom guiRoom = new GUIRoom(currentRoom, serverAddress, serverPort);
+			    chatupInstance.insertRoom(currentRoom.getId(), guiRoom);
+			    guiRoom.setVisible(true);
+			}
+			catch (MalformedURLException ex)
+			{
+			    chatupInstance.showError(this, HttpResponse.ServiceOffline);
+			}
+		    }
+		}
+		else
+		{
+		    chatupInstance.showError(this, HttpResponse.InvalidToken);
+		}
+	    }
+
         });
     }
 
-    private final JPasswordField textPassword;
+    private final Room currentRoom;
+    private final ButtonGroup buttonGroup1 = new ButtonGroup();
+    private final JButton buttonSubmit = new JButton();
+    private final JButton buttonCancel = new JButton();
+    private final JLabel labelPrompt = new JLabel();
+    private final JPanel panelButtons = new JPanel();
+    private final JPanel panelContainer = new JPanel();
+    private final JPasswordField textPassword = new JPasswordField();;
 }
