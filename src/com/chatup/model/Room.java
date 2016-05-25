@@ -23,11 +23,11 @@ public class Room
 
 	if (paramPrivate)
 	{
-	    roomType = RoomType.Private;
+	    roomType = RoomType.PRIVATE;
 	}
 	else
 	{
-	    roomType = RoomType.Public;
+	    roomType = RoomType.PUBLIC;
 	}
     }
 

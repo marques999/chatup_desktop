@@ -2,8 +2,8 @@ package com.chatup.model;
 
 public enum RoomType
 {
-    Private("Private"),
-    Public("Public");
+    PRIVATE("Private"),
+    PUBLIC("Public");
 
     private RoomType(final String paramType)
     {

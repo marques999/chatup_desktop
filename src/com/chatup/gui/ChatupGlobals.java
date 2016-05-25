@@ -16,8 +16,11 @@ public class ChatupGlobals
     public static final String MessageServiceUrl = "MessageService";
     public static final String UserServiceUrl = "UserService";
     public static final String RoomServiceUrl = "RoomService";
+    public static final String ServerAddress = "localhost";
     public static final String JsonType = "application/json";
     public static final String UserAgent = "Mozilla/5.0";
+    
+    public static int ServerPort = 8080;
 
     public static String formatDate(long paramTimestamp)
     {

@@ -15,10 +15,6 @@ import com.eclipsesource.json.JsonValue;
 import java.awt.Component;
 import java.awt.EventQueue;
 
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
-
 import java.util.HashMap;
 
 import javax.swing.JOptionPane;
@@ -33,12 +29,11 @@ public class ChatupClient
     {
 	try
 	{
-	    String primaryAddress = InetAddress.getLocalHost().getHostAddress();
-	    roomService = new RoomService(primaryAddress, 8080);
-	    userService = new UserService(primaryAddress, 8080);
+	    roomService = new RoomService(ChatupGlobals.ServerAddress, ChatupGlobals.ServerPort);
+	    userService = new UserService(ChatupGlobals.ServerAddress, ChatupGlobals.ServerPort);
 	    rooms = new HashMap<>();
 	}
-	catch (UnknownHostException | MalformedURLException ex)
+	catch (final Throwable ex)
 	{
 	    System.exit(1);
 	}
@@ -49,7 +44,7 @@ public class ChatupClient
 	return roomService;
     }
 
-    boolean jsonError(final Component parent, final JsonValue jsonValue)
+    boolean validateResponse(final Component parent, final JsonValue jsonValue)
     {
 	boolean receivedError = false;
 
@@ -72,8 +67,8 @@ public class ChatupClient
 		}
 	    }
 	}
-
-	return receivedError;
+            
+	return !receivedError;
     }
 
     protected void showError(final Component parent, final HttpResponse httpResponse)
