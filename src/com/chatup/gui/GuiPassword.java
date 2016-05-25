@@ -49,6 +49,7 @@ public class GUIPassword extends JDialog
         panelContainer.add(textPassword, BorderLayout.CENTER);
         getContentPane().add(panelContainer, BorderLayout.CENTER);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+	getRootPane().setDefaultButton(buttonSubmit);
         setModal(true);
         setResizable(false);
         setTitle("Private Room");
@@ -68,49 +69,49 @@ public class GUIPassword extends JDialog
 
         chatupInstance.actionJoinRoom(currentRoom.getId(), roomPassword, (jsonValue) ->
         {
-	    if (chatupInstance.jsonError(this, jsonValue))
+	    if (!chatupInstance.jsonError(this, jsonValue))
 	    {
-		return;
-	    }
+		final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
 
-	    final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
-
-	    if (jsonObject == null)
-	    {
-		chatupInstance.showError(this, HttpResponse.EmptyResponse);
-	    }
-	    else
-	    {
-		final String userToken = jsonObject.getString(HttpFields.UserToken, null);
-
-		if (ChatupClient.getInstance().validateToken(userToken))
+		if (jsonObject == null)
 		{
-		    final String serverAddress = jsonObject.getString(HttpFields.ServerAddress, null);
-		    int serverPort = jsonObject.getInt(HttpFields.ServerPort, -1);
-
-		    if (serverAddress == null || serverPort < 0 || serverAddress.isEmpty())
-		    {
-			chatupInstance.showError(this, HttpResponse.MissingParameters);
-		    }
-		    else
-		    {
-			try
-			{
-			    GUIRoom guiRoom = new GUIRoom(currentRoom, serverAddress, serverPort);
-			    chatupInstance.insertRoom(currentRoom.getId(), guiRoom);
-			    guiRoom.setVisible(true);
-			}
-			catch (MalformedURLException ex)
-			{
-			    chatupInstance.showError(this, HttpResponse.ServiceOffline);
-			}
-		    }
+		    chatupInstance.showError(this, HttpResponse.EmptyResponse);
 		}
 		else
 		{
-		    chatupInstance.showError(this, HttpResponse.InvalidToken);
+		    final String userToken = jsonObject.getString(HttpFields.UserToken, null);
+
+		    if (ChatupClient.getInstance().validateToken(userToken))
+		    {
+			final String serverAddress = jsonObject.getString(HttpFields.ServerAddress, null);
+			int serverPort = jsonObject.getInt(HttpFields.ServerPort, -1);
+
+			if (serverAddress == null || serverPort < 0 || serverAddress.isEmpty())
+			{
+			    chatupInstance.showError(this, HttpResponse.MissingParameters);
+			}
+			else
+			{
+			    try
+			    {
+				GUIRoom guiRoom = new GUIRoom(currentRoom, serverAddress, serverPort);
+				chatupInstance.insertRoom(currentRoom.getId(), guiRoom);
+				guiRoom.setVisible(true);
+			    }
+			    catch (final MalformedURLException ex)
+			    {
+				chatupInstance.showError(this, HttpResponse.ServiceOffline);
+			    }
+			}
+		    }
+		    else
+		    {
+			chatupInstance.showError(this, HttpResponse.InvalidToken);
+		    }
 		}
 	    }
+	    
+	    dispose();
         });
     }
 

@@ -62,28 +62,23 @@ public class GUICreateRoom extends JDialog
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 
-	if (chatupInstance.jsonError(this, jsonValue))
+	if (!chatupInstance.jsonError(this, jsonValue))
 	{
-	    return;
-	}
+	    final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
 
-	final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
-
-	if (jsonObject == null)
-	{
-	    chatupInstance.showError(this, HttpResponse.EmptyResponse);
-	}
-	else
-	{
-	    final String userToken = jsonObject.getString(HttpFields.UserToken, null);
-
-	    if (userToken == null || userToken.isEmpty())
+	    if (jsonObject == null)
 	    {
-		chatupInstance.showError(this, HttpResponse.MissingParameters);
+		chatupInstance.showError(this, HttpResponse.EmptyResponse);
 	    }
 	    else
 	    {
-		if (ChatupClient.getInstance().validateToken(userToken))
+		final String userToken = jsonObject.getString(HttpFields.UserToken, null);
+
+		if (userToken == null || userToken.isEmpty())
+		{
+		    chatupInstance.showError(this, HttpResponse.MissingParameters);
+		}
+		else if (ChatupClient.getInstance().validateToken(userToken))
 		{
 		    chatupInstance.createRoom(jsonObject);
 		}
@@ -93,6 +88,8 @@ public class GUICreateRoom extends JDialog
 		}
 	    }
 	}
+
+	dispose();
     }
 
     private void buttonCreateActionPerformed(final ActionEvent paramEvent)

@@ -61,6 +61,8 @@ public enum HttpResponse
 	    return "Selected chat room does not exist!";
 	case ProtocolError:
 	    return "Connection to server timed out, is server running?";
+	case WrongPassword:
+	     return "The room password you entered is incorrect!";
 	case ServiceOffline:
 	    return "This service is currenttly not available!";
 	}
