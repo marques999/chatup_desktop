@@ -116,12 +116,12 @@ public class GUILogin extends JFrame
 
     private boolean currentRemember = false;
 
-    private final String getEncodedString(final String paramInput)
+    private String getEncodedString(final String paramInput)
     {
 	return Base64.getEncoder().encodeToString(paramInput.getBytes(StandardCharsets.UTF_8));
     }
 
-    private final String getDecodedString(final String paramInput)
+    private String getDecodedString(final String paramInput)
     {
 	return new String(Base64.getDecoder().decode(paramInput));
     }
@@ -214,10 +214,7 @@ public class GUILogin extends JFrame
 
 	chatupInstance.actionUserLogin(inputEmail, inputToken, (jsonValue) ->
 	{
-	    if (chatupInstance.jsonError(this, jsonValue))
-	    {
-	    }
-	    else
+	    if (chatupInstance.validateResponse(this, jsonValue))
 	    {
 		final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
 

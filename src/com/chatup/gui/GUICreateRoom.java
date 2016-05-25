@@ -62,7 +62,7 @@ public class GUICreateRoom extends JDialog
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 
-	if (!chatupInstance.jsonError(this, jsonValue))
+	if (chatupInstance.validateResponse(this, jsonValue))
 	{
 	    final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
 

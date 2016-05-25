@@ -12,9 +12,7 @@ import com.eclipsesource.json.JsonValue;
 
 import java.awt.Point;
 import java.awt.event.WindowEvent;
-
 import java.net.MalformedURLException;
-
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -45,11 +43,7 @@ public class GUIMain extends JFrame
 	boolean serverDisconnect = false;
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 	
-	if (chatupInstance.jsonError(this, jsonValue))
-	{
-	    serverDisconnect = true;
-	}
-	else
+	if (chatupInstance.validateResponse(this, jsonValue))
 	{
 	    if (jsonValue.isString())
 	    {
@@ -67,6 +61,10 @@ public class GUIMain extends JFrame
 		serverDisconnect = true;
 	    }
 	}
+        else
+        {
+            serverDisconnect = true;
+        }
 	
 	if (serverDisconnect)
 	{
@@ -75,8 +73,7 @@ public class GUIMain extends JFrame
     }
     
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         panelMain = new javax.swing.JPanel();
@@ -84,29 +81,24 @@ public class GUIMain extends JFrame
         buttonJoin = new javax.swing.JButton();
         buttonDisconnect = new javax.swing.JButton();
         buttonSettings = new javax.swing.JButton();
-        buttonJoin1 = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        buttonRefresh = new javax.swing.JButton();
+        buttonCreate = new javax.swing.JButton();
         panelRooms = new javax.swing.JScrollPane();
         tableRooms = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Chatup Client : ROOMS");
         setIconImage(new javax.swing.ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
-        addComponentListener(new java.awt.event.ComponentAdapter()
-        {
-            public void componentShown(java.awt.event.ComponentEvent evt)
-            {
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentShown(java.awt.event.ComponentEvent evt) {
                 formComponentShown(evt);
             }
         });
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosed(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosed(java.awt.event.WindowEvent evt) {
                 formWindowClosed(evt);
             }
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
             }
         });
@@ -119,10 +111,8 @@ public class GUIMain extends JFrame
         panelButtons.setLayout(new java.awt.GridBagLayout());
 
         buttonJoin.setText("Join Room");
-        buttonJoin.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        buttonJoin.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonJoinActionPerformed(evt);
             }
         });
@@ -136,10 +126,8 @@ public class GUIMain extends JFrame
         panelButtons.add(buttonJoin, gridBagConstraints);
 
         buttonDisconnect.setText("Disconnect");
-        buttonDisconnect.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        buttonDisconnect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonDisconnectActionPerformed(evt);
             }
         });
@@ -153,6 +141,11 @@ public class GUIMain extends JFrame
         panelButtons.add(buttonDisconnect, gridBagConstraints);
 
         buttonSettings.setText("Settings");
+        buttonSettings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSettingsActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -162,12 +155,10 @@ public class GUIMain extends JFrame
         gridBagConstraints.insets = new java.awt.Insets(2, 0, 2, 0);
         panelButtons.add(buttonSettings, gridBagConstraints);
 
-        buttonJoin1.setText("Refresh");
-        buttonJoin1.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                buttonJoin1ActionPerformed(evt);
+        buttonRefresh.setText("Refresh");
+        buttonRefresh.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonRefreshActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -177,14 +168,12 @@ public class GUIMain extends JFrame
         gridBagConstraints.ipadx = 4;
         gridBagConstraints.ipady = 2;
         gridBagConstraints.insets = new java.awt.Insets(2, 0, 2, 0);
-        panelButtons.add(buttonJoin1, gridBagConstraints);
+        panelButtons.add(buttonRefresh, gridBagConstraints);
 
-        jButton1.setText("Create Room");
-        jButton1.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                jButton1ActionPerformed(evt);
+        buttonCreate.setText("Create Room");
+        buttonCreate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonCreateActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -194,7 +183,7 @@ public class GUIMain extends JFrame
         gridBagConstraints.ipadx = 4;
         gridBagConstraints.ipady = 2;
         gridBagConstraints.insets = new java.awt.Insets(2, 0, 2, 0);
-        panelButtons.add(jButton1, gridBagConstraints);
+        panelButtons.add(buttonCreate, gridBagConstraints);
 
         panelMain.add(panelButtons, java.awt.BorderLayout.LINE_END);
 
@@ -212,10 +201,8 @@ public class GUIMain extends JFrame
         tableRooms.setShowVerticalLines(false);
         tableRooms.getTableHeader().setResizingAllowed(false);
         tableRooms.getTableHeader().setReorderingAllowed(false);
-        tableRooms.addMouseListener(new java.awt.event.MouseAdapter()
-        {
-            public void mousePressed(java.awt.event.MouseEvent evt)
-            {
+        tableRooms.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
                 tableRoomsMousePressed(evt);
             }
         });
@@ -269,9 +256,10 @@ public class GUIMain extends JFrame
     {
 	boolean buttonState = !buttonJoin.isEnabled();
 	
+        buttonCreate.setEnabled(buttonState);
+        buttonDisconnect.setEnabled(buttonState);
 	buttonJoin.setEnabled(buttonState);
-	buttonJoin1.setEnabled(buttonState);
-	buttonDisconnect.setEnabled(buttonState);
+	buttonRefresh.setEnabled(buttonState);
 	buttonSettings.setEnabled(buttonState);
 	panelRooms.setEnabled(buttonState);
     }
@@ -292,11 +280,7 @@ public class GUIMain extends JFrame
 
 	chatupInstance.actionUserDisconnect((jsonValue) ->
 	{
-	    if (chatupInstance.jsonError(this, jsonValue))
-	    {
-		returnLogin();
-	    }
-	    else
+	    if (chatupInstance.validateResponse(this, jsonValue))
 	    {
 		final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
 
@@ -330,6 +314,10 @@ public class GUIMain extends JFrame
 		    }
 		}
 	    }
+            else
+            {
+                returnLogin();
+            }
 
 	    toggleButtons();
 	});
@@ -351,20 +339,24 @@ public class GUIMain extends JFrame
 	}
     }//GEN-LAST:event_tableRoomsMousePressed
 
-    private void buttonJoin1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonJoin1ActionPerformed
-    {//GEN-HEADEREND:event_buttonJoin1ActionPerformed
+    private void buttonRefreshActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonRefreshActionPerformed
+    {//GEN-HEADEREND:event_buttonRefreshActionPerformed
 	actionRefresh();
-    }//GEN-LAST:event_buttonJoin1ActionPerformed
+    }//GEN-LAST:event_buttonRefreshActionPerformed
 
     private void formComponentShown(java.awt.event.ComponentEvent evt)//GEN-FIRST:event_formComponentShown
     {//GEN-HEADEREND:event_formComponentShown
 	actionRefresh();
     }//GEN-LAST:event_formComponentShown
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jButton1ActionPerformed
-    {//GEN-HEADEREND:event_jButton1ActionPerformed
+    private void buttonCreateActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonCreateActionPerformed
+    {//GEN-HEADEREND:event_buttonCreateActionPerformed
         new GUICreateRoom(this).setVisible(true);
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_buttonCreateActionPerformed
+
+    private void buttonSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSettingsActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_buttonSettingsActionPerformed
 
     private static GUIMain guimainInstance;
 
@@ -379,11 +371,11 @@ public class GUIMain extends JFrame
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonCreate;
     private javax.swing.JButton buttonDisconnect;
     private javax.swing.JButton buttonJoin;
-    private javax.swing.JButton buttonJoin1;
+    private javax.swing.JButton buttonRefresh;
     private javax.swing.JButton buttonSettings;
-    private javax.swing.JButton jButton1;
     private javax.swing.JPanel panelButtons;
     private javax.swing.JPanel panelMain;
     private javax.swing.JScrollPane panelRooms;
@@ -398,10 +390,7 @@ public class GUIMain extends JFrame
 
 	chatupInstance.actionGetRooms((jsonValue) ->
 	{
-	    if (chatupInstance.jsonError(this, jsonValue))
-	    {
-	    }
-	    else
+	    if (chatupInstance.validateResponse(this, jsonValue))
 	    {
 		final JsonArray jsonArray = chatupInstance.extractArray(jsonValue);
 
@@ -431,7 +420,7 @@ public class GUIMain extends JFrame
 	final Room currentRoom = chatupInstance.getRoom(selectedId);
 	int selectedRoomId = (Integer) tableRooms.getModel().getValueAt(selectedId, 0);
 
-	if (roomType == RoomType.Private)
+	if (roomType == RoomType.PRIVATE)
 	{
 	    new GUIPassword(this, currentRoom).setVisible(true);
 	}
@@ -439,49 +428,47 @@ public class GUIMain extends JFrame
 	{
 	    chatupInstance.actionJoinRoom(selectedRoomId, null, (jsonValue) ->
 	    {
-		if (chatupInstance.jsonError(this, jsonValue))
+		if (chatupInstance.validateResponse(this, jsonValue))
 		{
-		    return;
-		}
+                    final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
 
-		final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
+                    if (jsonObject == null)
+                    {
+                        chatupInstance.showError(this, HttpResponse.EmptyResponse);
+                    }
+                    else
+                    {
+                        final String userToken = jsonObject.getString(HttpFields.UserToken, null);
 
-		if (jsonObject == null)
-		{
-		    chatupInstance.showError(this, HttpResponse.EmptyResponse);
-		}
-		else
-		{
-		    final String userToken = jsonObject.getString(HttpFields.UserToken, null);
+                        if (ChatupClient.getInstance().validateToken(userToken))
+                        {
+                            final String serverAddress = jsonObject.getString(HttpFields.ServerAddress, null);
+                            int serverPort = jsonObject.getInt(HttpFields.ServerPort, -1);
 
-		    if (ChatupClient.getInstance().validateToken(userToken))
-		    {
-			final String serverAddress = jsonObject.getString(HttpFields.ServerAddress, null);
-			int serverPort = jsonObject.getInt(HttpFields.ServerPort, -1);
-
-			if (serverAddress == null || serverPort < 0 || serverAddress.isEmpty())
-			{
-			    chatupInstance.showError(this, HttpResponse.MissingParameters);
-			}
-			else
-			{
-			    try
-			    {
-				GUIRoom guiRoom = new GUIRoom(currentRoom, serverAddress, serverPort);
-				chatupInstance.insertRoom(currentRoom.getId(), guiRoom);
-				guiRoom.setVisible(true);
-			    }
-			    catch (MalformedURLException ex)
-			    {
-				chatupInstance.showError(this, HttpResponse.ServiceOffline);
-			    }
-			}
-		    }
-		    else
-		    {
-			chatupInstance.showError(this, HttpResponse.InvalidToken);
-		    }
-		}
+                            if (serverAddress == null || serverPort < 0 || serverAddress.isEmpty())
+                            {
+                                chatupInstance.showError(this, HttpResponse.MissingParameters);
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    GUIRoom guiRoom = new GUIRoom(currentRoom, serverAddress, serverPort);
+                                    chatupInstance.insertRoom(currentRoom.getId(), guiRoom);
+                                    guiRoom.setVisible(true);
+                                }
+                                catch (MalformedURLException ex)
+                                {
+                                    chatupInstance.showError(this, HttpResponse.ServiceOffline);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            chatupInstance.showError(this, HttpResponse.InvalidToken);
+                        }
+                    }
+                }
 	    });
 	}
     }

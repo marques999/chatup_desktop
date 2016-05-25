@@ -7,15 +7,17 @@ import com.chatup.http.MessageService;
 
 import com.chatup.model.Message;
 import com.chatup.model.Room;
+import com.chatup.model.UserModel;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
-import java.awt.event.WindowEvent;
 
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.time.Instant;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -27,23 +29,23 @@ import javax.swing.text.html.HTMLDocument;
 
 public class GUIRoom extends javax.swing.JFrame
 {
+    private final Room myRoom;
+    private final UserModel myRoomUsers;
     private final MessageService messageService;
     private final HeartbeatService heartbeatExecutor;
      
     public GUIRoom(final Room paramRoom, final String serverAddress, int serverPort) throws MalformedURLException
     {
+        myRoomUsers = new UserModel();
 	initComponents();
 	messageService = new MessageService(serverAddress, serverPort);
-	thisRoom = paramRoom;
+	myRoom = paramRoom;
 	setTitle(paramRoom.getName());
 	setIconImage(new ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 	ses = Executors.newSingleThreadScheduledExecutor();
 	actionGetMessages();
-	heartbeatExecutor = new HeartbeatService(
-	    messageService,
-	    this::checkConnectionStatus
-	);
+	heartbeatExecutor = new HeartbeatService(messageService,this::checkConnectionStatus);
     }
     
     @Override
@@ -68,10 +70,6 @@ public class GUIRoom extends javax.swing.JFrame
 	
 	if (chatupInstance.validateResponse(this, jsonValue))
 	{
-	    serverDisconnect = true;
-	}
-	else
-	{
 	    if (jsonValue.isString())
 	    {
 		final String userToken = jsonValue.asString();
@@ -88,55 +86,108 @@ public class GUIRoom extends javax.swing.JFrame
 		serverDisconnect = true;
 	    }
 	}
+        else
+        {
+            serverDisconnect = true;
+        }
 	
 	if (serverDisconnect)
 	{
 	    dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
 	}
     }
+    
+    private void parseUsers(final JsonArray jsonArray)
+    {
+        final ChatupClient chatupInstance = ChatupClient.getInstance();
+        
+        if (jsonArray == null)
+        {
+            chatupInstance.showError(this, HttpResponse.InvalidResponse);
+        }
+        else
+        {
+            myRoomUsers.clear();
+             
+            for (final JsonValue jsonMessage : jsonArray)
+            {
+                if (!jsonMessage.isString())
+                {
+                    continue;
+                }
+
+                myRoomUsers.insert(jsonMessage.asString());
+            }
+
+            panelUsers.revalidate();
+        }
+    }
+
+    private void parseMessage(final JsonArray jsonArray)
+    {
+        final ChatupClient chatupInstance = ChatupClient.getInstance();
+
+        if (jsonArray == null)
+        {
+            chatupInstance.showError(this, HttpResponse.InvalidResponse);
+        }
+        else
+        {
+            for (final JsonValue jsonMessage : jsonArray)
+            {
+                if (!jsonMessage.isObject())
+                {
+                    continue;
+                }
+
+                final JsonObject jsonMessageObject = jsonMessage.asObject();
+
+                final Message newMessage = new Message(
+                    jsonMessageObject.getInt(HttpFields.RoomId, -1),
+                    jsonMessageObject.getString(HttpFields.UserToken, null),
+                    jsonMessageObject.getLong(HttpFields.Timestamp, 0L),
+                    jsonMessageObject.getString(HttpFields.UserMessage, null)
+                );
+
+                insertMessage(newMessage);
+            }
+        }
+    }
 
     private void actionGetMessages()
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
-	
+
 	toggleButtons();
 
-	messageService.getMessages(thisRoom.getId(), (jsonValue) ->
+	messageService.getMessages(myRoom.getId(), (jsonValue) ->
 	{
 	    if (chatupInstance.validateResponse(this, jsonValue))
 	    {
+                final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
+                final JsonValue jsonUsers = jsonObject.get("users");
+                
+                if (jsonUsers == null || !jsonUsers.isArray())
+                {
+                    chatupInstance.showError(this, HttpResponse.InvalidResponse);
+                }
+                else
+                {
+                    parseUsers(jsonUsers.asArray());
+                }
+                
+                final JsonValue jsonMessages = jsonObject.get("messages");
+                
+                if (jsonMessages == null || !jsonMessages.isArray())
+                {
+                    chatupInstance.showError(this, HttpResponse.InvalidResponse);
+                }
+                else
+                {
+                    parseMessage(jsonMessages.asArray());
+                }
 	    }
-	    else
-	    {
-		final JsonArray jsonArray = chatupInstance.extractArray(jsonValue);
 
-		if (jsonArray == null)
-		{
-		    chatupInstance.showError(this, HttpResponse.InvalidResponse);
-		}
-		else
-		{
-		    for (final JsonValue jsonMessage : jsonArray)
-		    {
-			if (!jsonMessage.isObject())
-			{
-			    continue;
-			}
-
-			final JsonObject jsonMessageObject = jsonMessage.asObject();
-
-			final Message newMessage = new Message(
-			    jsonMessageObject.getInt(HttpFields.RoomId, -1),
-			    jsonMessageObject.getString(HttpFields.UserToken, null),
-			    jsonMessageObject.getLong(HttpFields.Timestamp, 0L),
-			    jsonMessageObject.getString(HttpFields.UserMessage, null)
-			);
-
-			insertMessage(newMessage);
-		    }
-		}
-	    }
-	    
 	    toggleButtons();
 	});
     }
@@ -166,12 +217,10 @@ public class GUIRoom extends javax.swing.JFrame
         jPanel1.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8));
         jPanel1.setLayout(new java.awt.BorderLayout(8, 8));
 
-        listUsers.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "marques999", "mellus", "darklord" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
-        listUsers.setMaximumSize(new java.awt.Dimension(200, 48));
+        panelUsers.setMaximumSize(new java.awt.Dimension(300, 32767));
+
+        listUsers.setModel(myRoomUsers);
+        listUsers.setMaximumSize(new java.awt.Dimension(32768, 32768));
         listUsers.setMinimumSize(new java.awt.Dimension(128, 48));
         listUsers.setPreferredSize(new java.awt.Dimension(128, 48));
         panelUsers.setViewportView(listUsers);
@@ -211,7 +260,7 @@ public class GUIRoom extends javax.swing.JFrame
     private void buttonSendActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonSendActionPerformed
     {//GEN-HEADEREND:event_buttonSendActionPerformed
 	sendMessage(new Message(
-	    thisRoom.getId(),
+	    myRoom.getId(),
 	    ChatupClient.getInstance().getToken(),
 	    Instant.now().toEpochMilli(),
 	    inputMessage.getText()
@@ -227,11 +276,11 @@ public class GUIRoom extends javax.swing.JFrame
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
-	
+
 	toggleButtons();
         ses.shutdown();
 
-	chatupInstance.actionLeaveRoom(thisRoom.getId(), (jsonValue) ->
+	chatupInstance.actionLeaveRoom(myRoom.getId(), (jsonValue) ->
 	{
 	    if (chatupInstance.validateResponse(this, jsonValue))
 	    {
@@ -247,7 +296,7 @@ public class GUIRoom extends javax.swing.JFrame
 		    chatupInstance.showError(this, HttpResponse.InvalidToken);
 		}
 	    }
-	    
+
 	    toggleButtons();
 	});
     }//GEN-LAST:event_formWindowClosing
@@ -268,13 +317,13 @@ public class GUIRoom extends javax.swing.JFrame
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 
 	toggleButtons();
-	
+
 	messageService.sendMessage(paramMessage, (jsonValue) ->
 	{
 	    if (chatupInstance.validateResponse(this, jsonValue))
 	    {
                 final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
-		
+
                 insertMessage(new Message(
 		    jsonObject.getInt(HttpFields.RoomId, -1),
 		    jsonObject.getString(HttpFields.UserToken, null),
@@ -282,7 +331,7 @@ public class GUIRoom extends javax.swing.JFrame
 		    jsonObject.getString(HttpFields.UserMessage, null)
 		));
 	    }
-	    
+
 	    toggleButtons();
 	});
     }
@@ -316,6 +365,4 @@ public class GUIRoom extends javax.swing.JFrame
 	{
 	}
     }
-
-    private final Room thisRoom;
 }
