@@ -20,8 +20,6 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -35,14 +33,20 @@ public class ChatupClient
     {
 	try
 	{
-	    roomService = new RoomService(InetAddress.getLocalHost().getHostName(), 8080);
-	    userService = new UserService(InetAddress.getLocalHost().getHostName(), 8080);
+	    String primaryAddress = InetAddress.getLocalHost().getHostAddress();
+	    roomService = new RoomService(primaryAddress, 8080);
+	    userService = new UserService(primaryAddress, 8080);
 	    rooms = new HashMap<>();
 	}
-	catch (MalformedURLException | UnknownHostException ex)
+	catch (UnknownHostException | MalformedURLException ex)
 	{
-	    Logger.getLogger(GUIMain.class.getName()).log(Level.SEVERE, null, ex);
+	    System.exit(1);
 	}
+    }
+    
+    public RoomService getRoomService()
+    {
+	return roomService;
     }
 
     boolean jsonError(final Component parent, final JsonValue jsonValue)

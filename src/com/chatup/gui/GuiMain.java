@@ -1,15 +1,23 @@
 package com.chatup.gui;
 
+import com.chatup.http.HeartbeatService;
 import com.chatup.http.HttpFields;
 import com.chatup.http.HttpResponse;
 import com.chatup.model.Room;
 import com.chatup.model.RoomType;
+
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
 
 import java.awt.Point;
 import java.awt.event.WindowEvent;
+
 import java.net.MalformedURLException;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -18,12 +26,54 @@ import javax.swing.WindowConstants;
 
 public class GUIMain extends JFrame
 {
+    private ScheduledExecutorService ses;
+    
+    private final HeartbeatService heartbeatExecutor = new HeartbeatService(
+	ChatupClient.getInstance().getRoomService(),
+	this::checkConnectionStatus
+    );
+    
     public GUIMain()
     {
 	initComponents();
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+	ses = Executors.newSingleThreadScheduledExecutor();
     }
-
+    
+    private void checkConnectionStatus(final JsonValue jsonValue)
+    {
+	boolean serverDisconnect = false;
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+	
+	if (chatupInstance.jsonError(this, jsonValue))
+	{
+	    serverDisconnect = true;
+	}
+	else
+	{
+	    if (jsonValue.isString())
+	    {
+		final String userToken = jsonValue.asString();
+		
+		if (!chatupInstance.validateToken(userToken))
+		{
+		    chatupInstance.showError(this, HttpResponse.InvalidToken);
+		    serverDisconnect = true;
+		}
+	    }
+	    else
+	    {
+		chatupInstance.showError(this, HttpResponse.InvalidResponse);
+		serverDisconnect = true;
+	    }
+	}
+	
+	if (serverDisconnect)
+	{
+	    returnLogin();
+	}
+    }
+    
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents()
     {
@@ -179,6 +229,19 @@ public class GUIMain extends JFrame
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    @Override
+    public void setVisible(boolean paramVisible)
+    {
+	super.setVisible(paramVisible);
+	
+	if (ses.isShutdown())
+	{
+	    ses = Executors.newSingleThreadScheduledExecutor();
+	}
+
+	ses.scheduleWithFixedDelay(heartbeatExecutor, 5, 5, TimeUnit.SECONDS);
+    }
+    
     private void buttonJoinActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonJoinActionPerformed
     {//GEN-HEADEREND:event_buttonJoinActionPerformed
 	int selectedRoom = tableRooms.getSelectedRow();
@@ -202,46 +265,73 @@ public class GUIMain extends JFrame
     {//GEN-HEADEREND:event_formWindowClosed
     }//GEN-LAST:event_formWindowClosed
 
+    private void toggleButtons()
+    {
+	boolean buttonState = !buttonJoin.isEnabled();
+	
+	buttonJoin.setEnabled(buttonState);
+	buttonJoin1.setEnabled(buttonState);
+	buttonDisconnect.setEnabled(buttonState);
+	buttonSettings.setEnabled(buttonState);
+	panelRooms.setEnabled(buttonState);
+    }
+    
+    private void returnLogin()
+    {
+	dispose();
+	ses.shutdown();
+	ChatupClient.getInstance().setLogin(null, null);
+	GUILogin.getInstance().setVisible(true);
+    }
+
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
+	
+	toggleButtons();
 
 	chatupInstance.actionUserDisconnect((jsonValue) ->
 	{
 	    if (chatupInstance.jsonError(this, jsonValue))
 	    {
-		return;
-	    }
-
-	    final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
-
-	    if (jsonObject == null)
-	    {
-		chatupInstance.showError(this, HttpResponse.EmptyResponse);
-	    }
-
-	    final String userEmail = jsonObject.getString(HttpFields.UserEmail, null);
-	    final String userToken = jsonObject.getString(HttpFields.UserToken, null);
-
-	    if (userEmail == null || userToken == null)
-	    {
-		chatupInstance.showError(this, HttpResponse.MissingParameters);
+		returnLogin();
 	    }
 	    else
 	    {
-		final HttpResponse serverResponse = chatupInstance.validateUser(userEmail, userToken);
+		final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
 
-		if (serverResponse == HttpResponse.SuccessResponse)
+		if (jsonObject == null)
 		{
-		    chatupInstance.setLogin(null, null);
-		    dispose();
-		    GUILogin.getInstance().setVisible(true);
+		    chatupInstance.showError(this, HttpResponse.EmptyResponse);
 		}
 		else
 		{
-		    chatupInstance.showError(this, serverResponse);
+		    final String userEmail = jsonObject.getString(HttpFields.UserEmail, null);
+		    final String userToken = jsonObject.getString(HttpFields.UserToken, null);
+
+		    if (userEmail == null || userToken == null)
+		    {
+			chatupInstance.showError(this, HttpResponse.MissingParameters);
+		    }
+		    else
+		    {
+			final HttpResponse serverResponse = chatupInstance.validateUser(userEmail, userToken);
+
+			chatupInstance.setLogin(null, null);
+
+			if (serverResponse == HttpResponse.SuccessResponse)
+			{
+			    returnLogin();
+			}
+			else
+			{	
+			    chatupInstance.showError(this, serverResponse);
+			}
+		    }
 		}
 	    }
+
+	    toggleButtons();
 	});
     }//GEN-LAST:event_formWindowClosing
 
@@ -303,29 +393,34 @@ public class GUIMain extends JFrame
     protected void actionRefresh()
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
+	
+	toggleButtons();
 
 	chatupInstance.actionGetRooms((jsonValue) ->
 	{
 	    if (chatupInstance.jsonError(this, jsonValue))
 	    {
-		return;
-	    }
-
-	    final JsonArray jsonArray = chatupInstance.extractArray(jsonValue);
-
-	    if (jsonArray == null)
-	    {
-		chatupInstance.showError(this, HttpResponse.InvalidResponse);
 	    }
 	    else
 	    {
-		final HttpResponse serverResponse = chatupInstance.responseGetRooms(jsonArray);
+		final JsonArray jsonArray = chatupInstance.extractArray(jsonValue);
 
-		if (serverResponse != HttpResponse.SuccessResponse)
+		if (jsonArray == null)
 		{
-		    chatupInstance.showError(this, serverResponse);
+		    chatupInstance.showError(this, HttpResponse.InvalidResponse);
+		}
+		else
+		{
+		    final HttpResponse serverResponse = chatupInstance.responseGetRooms(jsonArray);
+
+		    if (serverResponse != HttpResponse.SuccessResponse)
+		    {
+			chatupInstance.showError(this, serverResponse);
+		    }
 		}
 	    }
+	    
+	    toggleButtons();
 	});
     }
 

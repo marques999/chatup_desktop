@@ -2,40 +2,82 @@ package com.chatup.http;
 
 import com.chatup.gui.ChatupClient;
 import com.chatup.gui.ChatupGlobals;
-
 import com.chatup.model.Heartbeat;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
 
-import java.net.MalformedURLException;
+import com.eclipsesource.json.Json;
 
-public class HeartbeatService extends HttpService
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+public class HeartbeatService implements Runnable
 {
-    public HeartbeatService(final String serviceAddress, int servicePort) throws MalformedURLException
+    private final HttpCallback httpCallback;
+    private final String serviceUrl;
+
+    public HeartbeatService(final HttpService httpService, final HttpCallback paramCallback)
     {
-	super(serviceAddress, ChatupGlobals.HeartbeatServiceUrl, servicePort);
+	serviceUrl = "http://" 
+	    + httpService.getAddress() + ":" 
+	    + httpService.getPort() + "/" 
+	    + ChatupGlobals.HeartbeatServiceUrl
+	    + new Heartbeat(ChatupClient.getInstance().getToken()).getMessage();
+	httpCallback = paramCallback;
     }
 
-    public void requestHeartbeat(int roomId, final HttpCallback actionCallback)
-    {
-	GET(new Heartbeat(ChatupClient.getInstance().getToken()), actionCallback);
-    }
+    private HttpResponse httpError;
+    private HttpURLConnection httpConnection;
 
-       private final HttpResponse validateResponse(final JsonValue jsonValue)
+    @Override
+    public void run()
     {
-	if (jsonValue == null || !jsonValue.isObject())
+	boolean exceptionThrown = false;
+
+	try
 	{
-	    return HttpResponse.InvalidCommand;
+	    httpConnection = (HttpURLConnection) new URL(serviceUrl).openConnection();
+	    httpConnection.setRequestMethod("GET");
+	    httpConnection.setRequestProperty("Accept", ChatupGlobals.JsonType);
+	    httpConnection.setRequestProperty("User-Agent", ChatupGlobals.UserAgent);
+	    httpConnection.getResponseCode();
+	}
+	catch (final Throwable ex)
+	{
+	    exceptionThrown = true;
+	    httpError = HttpResponse.ProtocolError;
 	}
 
-	final JsonObject jsonObject = jsonValue.asObject();
-	final String userToken = jsonObject.getString(HttpFields.UserToken, null);
-
-	if (ChatupClient.getInstance().validateToken(userToken))
+	if (exceptionThrown)
 	{
-	    return HttpResponse.SuccessResponse;
+	    httpCallback.execute(Json.object().add("error", httpError.toString()));
 	}
+	else
+	{
+	    final StringBuffer response = new StringBuffer();
 
-	return HttpResponse.InvalidToken;
+	    try (final BufferedReader br = new BufferedReader(new InputStreamReader(httpConnection.getInputStream())))
+	    {
+		for (String inputLine = br.readLine(); inputLine != null; inputLine = br.readLine())
+		{
+		    response.append(inputLine);
+		}
+	    }
+	    catch (final Throwable ex)
+	    {
+		exceptionThrown = true;
+		httpError = HttpResponse.ProtocolError;
+	    }
+
+	    if (exceptionThrown)
+	    {
+		httpCallback.execute(Json.object().add("error", httpError.toString()));
+	    }
+	    else
+	    {
+		httpCallback.execute(new HttpDispatcher(response.toString()).processRequest());
+	    }
+	}
     }
 }

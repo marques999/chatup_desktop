@@ -28,6 +28,16 @@ public abstract class HttpService
     }
 
     private final int servicePort;
+    
+    protected String getAddress()
+    {
+	return serviceAddress;
+    }
+    
+    protected int getPort()
+    {
+	return servicePort;
+    }
 
     protected void GET(final HttpRequest httpRequest, final HttpCallback actionCallback)
     {
@@ -70,7 +80,7 @@ public abstract class HttpService
 	    sb.append("/");
 	    sb.append(servicePath);
 	    sb.append(paramRequest.getMessage());
-	    System.out.println("\nSending 'GET' request to URL : " + sb.toString());
+	    System.out.println("Sending GET request to URL : " + sb.toString());
 	    httpConnection = (HttpURLConnection) new URL(sb.toString()).openConnection();
 	    httpRequest = paramRequest;
 	    httpCallback = paramCallback;
@@ -83,15 +93,13 @@ public abstract class HttpService
 	{
 	    final String httpMethod = httpRequest.getMethod();
 	    boolean exceptionThrown = false;
-	    int responseCode;
 
 	    try
 	    {
 		httpConnection.setRequestMethod(httpMethod);
 		httpConnection.setRequestProperty("Accept", ChatupGlobals.JsonType);
 		httpConnection.setRequestProperty("User-Agent", ChatupGlobals.UserAgent);
-		responseCode = httpConnection.getResponseCode();
-		System.out.println("Response Code : " + responseCode);
+		httpConnection.getResponseCode();
 	    }
 	    catch (IOException ex)
 	    {
@@ -175,8 +183,7 @@ public abstract class HttpService
 	    }
 	    else
 	    {
-		System.out.println("\nSending " + httpMethod + " request to URL : " + serviceUrl);
-		System.out.println("Post parameters : " + httpRequest.getMessage());
+		System.out.println("Sending " + httpMethod + " request to URL : " + serviceUrl);
 
 		try (final DataOutputStream wr = new DataOutputStream(httpConnection.getOutputStream()))
 		{

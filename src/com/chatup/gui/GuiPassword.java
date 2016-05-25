@@ -111,7 +111,6 @@ public class GUIPassword extends JDialog
 		    chatupInstance.showError(this, HttpResponse.InvalidToken);
 		}
 	    }
-
         });
     }
 

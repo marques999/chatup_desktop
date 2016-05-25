@@ -1,5 +1,6 @@
 package com.chatup.gui;
 
+import com.chatup.http.HeartbeatService;
 import com.chatup.http.HttpFields;
 import com.chatup.http.HttpResponse;
 import com.chatup.http.MessageService;
@@ -10,10 +11,14 @@ import com.chatup.model.Room;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
+import java.awt.event.WindowEvent;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.time.Instant;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.ImageIcon;
 import javax.swing.WindowConstants;
@@ -23,7 +28,8 @@ import javax.swing.text.html.HTMLDocument;
 public class GUIRoom extends javax.swing.JFrame
 {
     private final MessageService messageService;
-
+    private final HeartbeatService heartbeatExecutor;
+     
     public GUIRoom(final Room paramRoom, final String serverAddress, int serverPort) throws MalformedURLException
     {
 	initComponents();
@@ -32,47 +38,106 @@ public class GUIRoom extends javax.swing.JFrame
 	setTitle(paramRoom.getName());
 	setIconImage(new ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+	ses = Executors.newSingleThreadScheduledExecutor();
 	actionGetMessages();
+	heartbeatExecutor = new HeartbeatService(
+	    messageService,
+	    this::checkConnectionStatus
+	);
+    }
+    
+    @Override
+    public void setVisible(boolean paramVisible)
+    {
+	super.setVisible(paramVisible);
+	
+	if (ses.isShutdown())
+	{
+	    ses = Executors.newSingleThreadScheduledExecutor();
+	}
+
+	ses.scheduleWithFixedDelay(heartbeatExecutor, 5, 5, TimeUnit.SECONDS);
+    }
+    
+    private ScheduledExecutorService ses;
+    
+    private void checkConnectionStatus(final JsonValue jsonValue)
+    {
+	boolean serverDisconnect = false;
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+	
+	if (chatupInstance.jsonError(this, jsonValue))
+	{
+	    serverDisconnect = true;
+	}
+	else
+	{
+	    if (jsonValue.isString())
+	    {
+		final String userToken = jsonValue.asString();
+		
+		if (!chatupInstance.validateToken(userToken))
+		{
+		    chatupInstance.showError(this, HttpResponse.InvalidToken);
+		    serverDisconnect = true;
+		}
+	    }
+	    else
+	    {
+		chatupInstance.showError(this, HttpResponse.InvalidResponse);
+		serverDisconnect = true;
+	    }
+	}
+	
+	if (serverDisconnect)
+	{
+	    dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+	}
     }
 
     private final void actionGetMessages()
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
+	
+	toggleButtons();
 
 	messageService.getMessages(thisRoom.getId(), (jsonValue) ->
 	{
 	    if (chatupInstance.jsonError(this, jsonValue))
 	    {
-		return;
-	    }
-
-	    final JsonArray jsonArray = chatupInstance.extractArray(jsonValue);
-
-	    if (jsonArray == null)
-	    {
-		chatupInstance.showError(this, HttpResponse.InvalidResponse);
 	    }
 	    else
 	    {
-		for (final JsonValue jsonMessage : jsonArray)
+		final JsonArray jsonArray = chatupInstance.extractArray(jsonValue);
+
+		if (jsonArray == null)
 		{
-		    if (!jsonMessage.isObject())
+		    chatupInstance.showError(this, HttpResponse.InvalidResponse);
+		}
+		else
+		{
+		    for (final JsonValue jsonMessage : jsonArray)
 		    {
-			continue;
+			if (!jsonMessage.isObject())
+			{
+			    continue;
+			}
+
+			final JsonObject jsonMessageObject = jsonMessage.asObject();
+
+			final Message newMessage = new Message(
+			    jsonMessageObject.getInt(HttpFields.RoomId, -1),
+			    jsonMessageObject.getString(HttpFields.UserToken, null),
+			    jsonMessageObject.getLong(HttpFields.Timestamp, 0L),
+			    jsonMessageObject.getString(HttpFields.UserMessage, null)
+			);
+
+			insertMessage(newMessage);
 		    }
-
-		    final JsonObject jsonMessageObject = jsonMessage.asObject();
-
-		    final Message newMessage = new Message(
-			jsonMessageObject.getInt(HttpFields.RoomId, -1),
-			jsonMessageObject.getString(HttpFields.UserToken, null),
-			jsonMessageObject.getLong(HttpFields.Timestamp, 0L),
-			jsonMessageObject.getString(HttpFields.UserMessage, null)
-		    );
-
-		    insertMessage(newMessage);
 		}
 	    }
+	    
+	    toggleButtons();
 	});
     }
 
@@ -159,19 +224,23 @@ public class GUIRoom extends javax.swing.JFrame
 	));
     }//GEN-LAST:event_buttonSendActionPerformed
 
+    void toggleButtons()
+    {
+	buttonSend.setEnabled(!buttonSend.isEnabled());
+	inputMessage.setEnabled(!inputMessage.isEnabled());
+    }
+    
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
+	
+	toggleButtons();
 
 	chatupInstance.actionLeaveRoom(thisRoom.getId(), (jsonValue) ->
 	{
 	    final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
 
-	    if (jsonObject == null)
-	    {
-		chatupInstance.showError(this, HttpResponse.InvalidCommand);
-	    }
-	    else if (chatupInstance.jsonError(this, jsonObject))
+	    if (chatupInstance.jsonError(this, jsonObject))
 	    {
 	    }
 	    else
@@ -187,6 +256,8 @@ public class GUIRoom extends javax.swing.JFrame
 		    chatupInstance.showError(this, HttpResponse.InvalidToken);
 		}
 	    }
+	    
+	    toggleButtons();
 	});
     }//GEN-LAST:event_formWindowClosing
 
@@ -205,6 +276,8 @@ public class GUIRoom extends javax.swing.JFrame
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 
+	toggleButtons();
+	
 	messageService.sendMessage(paramMessage, (jsonValue) ->
 	{
 	    final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
@@ -225,6 +298,8 @@ public class GUIRoom extends javax.swing.JFrame
 		    jsonObject.getString(HttpFields.UserMessage, null)
 		));
 	    }
+	    
+	    toggleButtons();
 	});
     }
 

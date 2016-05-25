@@ -19,11 +19,9 @@ public class HttpQuery
 	    {
 		try
 		{
-		    sb.append(httpParameters[i].getFirst());
-		    sb.append("=");
-		    sb.append(URLEncoder.encode(httpParameters[i].getSecond(), StandardCharsets.UTF_8.toString()));
+		    sb.append(httpParameters[i].getFirst()).append("=").append(URLEncoder.encode(httpParameters[i].getSecond(), StandardCharsets.UTF_8.toString()));
 		}
-		catch (Exception ex)
+		catch (final Throwable ex)
 		{
 		    break;
 		}

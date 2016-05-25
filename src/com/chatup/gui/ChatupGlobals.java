@@ -12,7 +12,7 @@ public class ChatupGlobals
     public static final String DefaultRemember = "false";
     public static final String DefaultPassword = "";
     public static final String PreferencesFilename = "ChatupClient.prefs";
-    public static final String HeartbeatServiceUrl = "HeartbeatServiceUrl";
+    public static final String HeartbeatServiceUrl = "HeartbeatService";
     public static final String MessageServiceUrl = "MessageService";
     public static final String UserServiceUrl = "UserService";
     public static final String RoomServiceUrl = "RoomService";
