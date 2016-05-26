@@ -39,11 +39,11 @@ public abstract class HttpService
 	return servicePort;
     }
 
-    protected void GET(final HttpRequest httpRequest, final HttpCallback actionCallback)
+    protected void GET(final HttpRequest httpRequest, int httpTimeout, final HttpCallback actionCallback)
     {
 	try
 	{
-	    new __GET(httpRequest, actionCallback).start();
+	    new __GET(httpRequest, httpTimeout, actionCallback).start();
 	}
 	catch (IOException ex)
 	{
@@ -69,7 +69,7 @@ public abstract class HttpService
 	private final HttpCallback httpCallback;
 	private final HttpURLConnection httpConnection;
 
-	public __GET(final HttpRequest paramRequest, final HttpCallback paramCallback) throws IOException
+	public __GET(final HttpRequest paramRequest, int paramTimeout, final HttpCallback paramCallback) throws IOException
 	{
 	    final StringBuilder sb = new StringBuilder();
 
@@ -83,6 +83,7 @@ public abstract class HttpService
 	    System.out.println("Sending GET request to URL : " + sb.toString());
 	    httpConnection = (HttpURLConnection) new URL(sb.toString()).openConnection();
 	    httpRequest = paramRequest;
+	    httpTimeout = paramTimeout;
 	    httpCallback = paramCallback;
 	}
 
@@ -97,6 +98,12 @@ public abstract class HttpService
 	    try
 	    {
 		httpConnection.setRequestMethod(httpMethod);
+		
+		if (httpTimeout > 0)
+		{
+		    httpConnection.setReadTimeout(httpTimeout);
+		}
+		
 		httpConnection.setRequestProperty("Accept", ChatupGlobals.JsonType);
 		httpConnection.setRequestProperty("User-Agent", ChatupGlobals.UserAgent);
 		httpConnection.getResponseCode();
@@ -139,6 +146,8 @@ public abstract class HttpService
 		}
 	    }
 	}
+	
+	private int httpTimeout;
     }
 
     private class __POST extends Thread

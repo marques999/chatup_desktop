@@ -1,6 +1,5 @@
 package com.chatup.gui;
 
-import com.chatup.http.HeartbeatService;
 import com.chatup.http.HttpFields;
 import com.chatup.http.HttpResponse;
 import com.chatup.http.MessageService;
@@ -18,84 +17,46 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.time.Instant;
 
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.ImageIcon;
 import javax.swing.WindowConstants;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultCaret;
 import javax.swing.text.html.HTMLDocument;
 
 public class GUIRoom extends javax.swing.JFrame
 {
-    private final Room myRoom;
-    private final UserModel myRoomUsers;
-    private final MessageService messageService;
-    private final HeartbeatService heartbeatExecutor;
+    private final Room mRoom;
+    private final UserModel mUsers;
+    private final RefreshMessages mWorker;
+    private final MessageService mService;
      
     public GUIRoom(final Room paramRoom, final String serverAddress, int serverPort) throws MalformedURLException
     {
-        myRoomUsers = new UserModel();
+	mTimestamp = 0L;
+	mRoom = paramRoom;
+	mUsers = new UserModel();
+	mService = new MessageService(serverAddress, serverPort);
 	initComponents();
-	messageService = new MessageService(serverAddress, serverPort);
-	myRoom = paramRoom;
 	setTitle(paramRoom.getName());
 	setIconImage(new ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-	ses = Executors.newSingleThreadScheduledExecutor();
-	actionGetMessages();
-	heartbeatExecutor = new HeartbeatService(messageService,this::checkConnectionStatus);
+	mWorker = new RefreshMessages(this);
+	((DefaultCaret)jEditorPane1.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     }
+    
+    private long mTimestamp;
     
     @Override
     public void setVisible(boolean paramVisible)
     {
 	super.setVisible(paramVisible);
-	
-	if (ses.isShutdown())
-	{
-	    ses = Executors.newSingleThreadScheduledExecutor();
-	}
-
-	ses.scheduleWithFixedDelay(heartbeatExecutor, 5, 5, TimeUnit.SECONDS);
+	new Thread(mWorker).start();
     }
     
-    private ScheduledExecutorService ses;
-    
-    private void checkConnectionStatus(final JsonValue jsonValue)
-    {
-	boolean serverDisconnect = false;
-	final ChatupClient chatupInstance = ChatupClient.getInstance();
-	
-	if (chatupInstance.validateResponse(this, jsonValue))
-	{
-	    if (jsonValue.isString())
-	    {
-		final String userToken = jsonValue.asString();
-		
-		if (!chatupInstance.validateToken(userToken))
-		{
-		    chatupInstance.showError(this, HttpResponse.InvalidToken);
-		    serverDisconnect = true;
-		}
-	    }
-	    else
-	    {
-		chatupInstance.showError(this, HttpResponse.InvalidResponse);
-		serverDisconnect = true;
-	    }
-	}
-        else
-        {
-            serverDisconnect = true;
-        }
-	
-	if (serverDisconnect)
-	{
-	    dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-	}
-    }
+    private ScheduledExecutorService mExecutor;
     
     private void parseUsers(final JsonArray jsonArray)
     {
@@ -107,7 +68,7 @@ public class GUIRoom extends javax.swing.JFrame
         }
         else
         {
-            myRoomUsers.clear();
+	    final ArrayList<String> myUsers = new ArrayList<>();
              
             for (final JsonValue jsonMessage : jsonArray)
             {
@@ -116,10 +77,24 @@ public class GUIRoom extends javax.swing.JFrame
                     continue;
                 }
 
-                myRoomUsers.insert(jsonMessage.asString());
-            }
-
-            panelUsers.revalidate();
+                myUsers.add(jsonMessage.asString());
+	    }
+	    
+	    mUsers.refresh(myUsers);
+	    
+	    final ArrayList<String> removedUsers = mUsers.getDisconnected();
+	    
+	    for (final String userToken : removedUsers)
+	    {
+		notifyUserDisconnected(userToken);
+	    }
+	    
+	    final ArrayList<String> connectedUsers = mUsers.getConnected();
+	    
+	    for (final String userToken : connectedUsers)
+	    {
+		notifyUserConnected(userToken);
+	    }
         }
     }
 
@@ -154,51 +129,80 @@ public class GUIRoom extends javax.swing.JFrame
         }
     }
 
-    private void actionGetMessages()
+    private class RefreshMessages implements Runnable
     {
-	final ChatupClient chatupInstance = ChatupClient.getInstance();
-
-	toggleButtons();
-
-	messageService.getMessages(myRoom.getId(), (jsonValue) ->
+	private boolean mStop;
+	
+	public RefreshMessages(final GUIRoom guiRoom)
 	{
-	    if (chatupInstance.validateResponse(this, jsonValue))
+	    mParent = guiRoom;
+	    mStop = false;
+	    mInstance = ChatupClient.getInstance();
+	}
+	
+	private final GUIRoom mParent;
+	private final ChatupClient mInstance;
+	
+	public void stopExecuting()
+	{
+	    mStop = true;
+	}
+	
+	@Override
+	public void run()
+	{
+	    mService.getMessages(mRoom.getId(), mTimestamp, (jsonValue) ->
 	    {
-                final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
-                final JsonValue jsonUsers = jsonObject.get("users");
-                
-                if (jsonUsers == null || !jsonUsers.isArray())
-                {
-                    chatupInstance.showError(this, HttpResponse.InvalidResponse);
-                }
-                else
-                {
-                    parseUsers(jsonUsers.asArray());
-                }
-                
-                final JsonValue jsonMessages = jsonObject.get("messages");
-                
-                if (jsonMessages == null || !jsonMessages.isArray())
-                {
-                    chatupInstance.showError(this, HttpResponse.InvalidResponse);
-                }
-                else
-                {
-                    parseMessage(jsonMessages.asArray());
-                }
-	    }
+		if (mStop)
+		{
+		    return;
+		}
+		
+		if (mInstance.validateResponse(mParent, jsonValue))
+		{
+		    final JsonObject jsonObject = mInstance.extractResponse(jsonValue);
+		    final JsonValue jsonUsers = jsonObject.get("users");
 
-	    toggleButtons();
-	});
+		    if (jsonUsers == null || !jsonUsers.isArray())
+		    {
+			mInstance.showError(mParent, HttpResponse.InvalidResponse);
+		    }
+		    else
+		    {
+			parseUsers(jsonUsers.asArray());
+			mTimestamp = Instant.now().toEpochMilli();
+		    }
+
+		    final JsonValue jsonMessages = jsonObject.get("messages");
+
+		    if (jsonMessages == null || !jsonMessages.isArray())
+		    {
+			mInstance.showError(mParent, HttpResponse.InvalidResponse);
+		    }
+		    else
+		    {
+			parseMessage(jsonMessages.asArray());
+			mTimestamp = Instant.now().toEpochMilli();
+		    }
+		    
+		    run();
+		}
+		else
+		{
+		    dispatchEvent(new WindowEvent(mParent, WindowEvent.WINDOW_CLOSING));
+		}
+	    });
+	}
     }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
 
         jPanel1 = new javax.swing.JPanel();
         panelUsers = new javax.swing.JScrollPane();
-        listUsers = new javax.swing.JList<String>();
+        listUsers = new javax.swing.JList<>();
         panelForm = new javax.swing.JPanel();
         inputMessage = new javax.swing.JTextField();
         buttonSend = new javax.swing.JButton();
@@ -207,9 +211,10 @@ public class GUIRoom extends javax.swing.JFrame
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(520, 360));
-        setPreferredSize(new java.awt.Dimension(520, 360));
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 formWindowClosing(evt);
             }
         });
@@ -219,7 +224,7 @@ public class GUIRoom extends javax.swing.JFrame
 
         panelUsers.setMaximumSize(new java.awt.Dimension(300, 32767));
 
-        listUsers.setModel(myRoomUsers);
+        listUsers.setModel(mUsers);
         listUsers.setMaximumSize(new java.awt.Dimension(32768, 32768));
         listUsers.setMinimumSize(new java.awt.Dimension(128, 48));
         listUsers.setPreferredSize(new java.awt.Dimension(128, 48));
@@ -235,8 +240,10 @@ public class GUIRoom extends javax.swing.JFrame
 
         buttonSend.setText("Enviar");
         buttonSend.setMargin(new java.awt.Insets(2, 16, 2, 16));
-        buttonSend.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        buttonSend.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 buttonSendActionPerformed(evt);
             }
         });
@@ -260,7 +267,7 @@ public class GUIRoom extends javax.swing.JFrame
     private void buttonSendActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonSendActionPerformed
     {//GEN-HEADEREND:event_buttonSendActionPerformed
 	sendMessage(new Message(
-	    myRoom.getId(),
+	    mRoom.getId(),
 	    ChatupClient.getInstance().getToken(),
 	    Instant.now().toEpochMilli(),
 	    inputMessage.getText()
@@ -278,9 +285,9 @@ public class GUIRoom extends javax.swing.JFrame
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 
 	toggleButtons();
-        ses.shutdown();
+	mWorker.stopExecuting();
 
-	chatupInstance.actionLeaveRoom(myRoom.getId(), (jsonValue) ->
+	chatupInstance.actionLeaveRoom(mRoom.getId(), (jsonValue) ->
 	{
 	    if (chatupInstance.validateResponse(this, jsonValue))
 	    {
@@ -314,28 +321,41 @@ public class GUIRoom extends javax.swing.JFrame
 
     private void sendMessage(final Message paramMessage)
     {
-	final ChatupClient chatupInstance = ChatupClient.getInstance();
-
 	toggleButtons();
 
-	messageService.sendMessage(paramMessage, (jsonValue) ->
+	mService.sendMessage(paramMessage, (jsonValue) ->
 	{
-	    if (chatupInstance.validateResponse(this, jsonValue))
-	    {
-                final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
-
-                insertMessage(new Message(
-		    jsonObject.getInt(HttpFields.RoomId, -1),
-		    jsonObject.getString(HttpFields.UserToken, null),
-		    jsonObject.getLong(HttpFields.Timestamp, 0L),
-		    jsonObject.getString(HttpFields.UserMessage, null)
-		));
-	    }
-
+	    ChatupClient.getInstance().validateResponse(this, jsonValue);
 	    toggleButtons();
 	});
     }
 
+    private void notifyUserConnected(final String userToken)
+    {
+	final HTMLDocument doc = (HTMLDocument) jEditorPane1.getDocument();
+	
+	try
+	{
+	    doc.insertAfterEnd(doc.getCharacterElement(doc.getLength()), "<i>" + userToken + " has joined room.</i><br>");
+	}
+	catch (BadLocationException | IOException ex)
+	{
+	}
+    }
+    
+    private void notifyUserDisconnected(final String userToken)
+    {
+	final HTMLDocument doc = (HTMLDocument) jEditorPane1.getDocument();
+	
+	try
+	{
+	    doc.insertAfterEnd(doc.getCharacterElement(doc.getLength()), "<i>" + userToken + " has left room.</i><br>");
+	}
+	catch (BadLocationException | IOException ex)
+	{
+	}
+    }
+    
     private void insertMessage(Message paramMessage)
     {
 	final HTMLDocument doc = (HTMLDocument) jEditorPane1.getDocument();

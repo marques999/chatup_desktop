@@ -16,9 +16,9 @@ public class MessageService extends HttpService
 	super(serviceAddress, ChatupGlobals.MessageServiceUrl, servicePort);
     }
 
-    public void getMessages(int roomId, final HttpCallback actionCallback)
+    public void getMessages(int roomId, long messageTimestamp, final HttpCallback actionCallback)
     {
-	GET(new GetMessages(roomId, ChatupClient.getInstance().getToken()), actionCallback);
+	GET(new GetMessages(roomId, messageTimestamp, ChatupClient.getInstance().getToken()), 65536, actionCallback);
     }
 
     public void sendMessage(final Message paramMessage, final HttpCallback actionCallback)

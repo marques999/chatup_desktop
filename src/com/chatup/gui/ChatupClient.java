@@ -38,7 +38,7 @@ public class ChatupClient
 	    System.exit(1);
 	}
     }
-    
+
     public RoomService getRoomService()
     {
 	return roomService;

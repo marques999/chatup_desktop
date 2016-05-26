@@ -19,7 +19,7 @@ public class RoomService extends HttpService
 
     public void getRooms(final String userToken, final HttpCallback actionCallback)
     {
-	GET(new GetRooms(userToken), actionCallback);
+	GET(new GetRooms(userToken), 65536, actionCallback);
     }
 
     public void createRoom(final String roomName, final String roomPassword, final HttpCallback actionCallback)

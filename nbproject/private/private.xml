@@ -5,10 +5,12 @@
         <group>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/eclipsesource/json/JsonHandler.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HeartbeatService.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/RoomModel.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/RoomType.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/CreateRoom.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpCallback.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/GUICreateRoom.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/UserModel.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/ChatupGlobals.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/JoinRoom.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpFields.java</file>
@@ -17,6 +19,7 @@
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/MessageService.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/eclipsesource/json/Json.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpRequest.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/Heartbeat.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpMethod.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/RoomService.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/Room.java</file>
@@ -24,6 +27,7 @@
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/GetRooms.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/gui/GUILogin.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/eclipsesource/json/JsonLiteral.java</file>
+            <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/model/SendMessage.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/UserService.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/eclipsesource/json/JsonArray.java</file>
             <file>file:/C:/Users/MARQUES/Documents/NetBeansProjects/sdis_proj2/src/com/chatup/http/HttpDispatcher.java</file>

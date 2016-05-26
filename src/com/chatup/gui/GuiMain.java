@@ -73,14 +73,14 @@ public class GUIMain extends JFrame
     }
     
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
         java.awt.GridBagConstraints gridBagConstraints;
 
         panelMain = new javax.swing.JPanel();
         panelButtons = new javax.swing.JPanel();
         buttonJoin = new javax.swing.JButton();
         buttonDisconnect = new javax.swing.JButton();
-        buttonSettings = new javax.swing.JButton();
         buttonRefresh = new javax.swing.JButton();
         buttonCreate = new javax.swing.JButton();
         panelRooms = new javax.swing.JScrollPane();
@@ -89,16 +89,21 @@ public class GUIMain extends JFrame
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Chatup Client : ROOMS");
         setIconImage(new javax.swing.ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
-        addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentShown(java.awt.event.ComponentEvent evt) {
+        addComponentListener(new java.awt.event.ComponentAdapter()
+        {
+            public void componentShown(java.awt.event.ComponentEvent evt)
+            {
                 formComponentShown(evt);
             }
         });
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosed(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosed(java.awt.event.WindowEvent evt)
+            {
                 formWindowClosed(evt);
             }
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 formWindowClosing(evt);
             }
         });
@@ -111,8 +116,10 @@ public class GUIMain extends JFrame
         panelButtons.setLayout(new java.awt.GridBagLayout());
 
         buttonJoin.setText("Join Room");
-        buttonJoin.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        buttonJoin.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 buttonJoinActionPerformed(evt);
             }
         });
@@ -126,8 +133,10 @@ public class GUIMain extends JFrame
         panelButtons.add(buttonJoin, gridBagConstraints);
 
         buttonDisconnect.setText("Disconnect");
-        buttonDisconnect.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        buttonDisconnect.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 buttonDisconnectActionPerformed(evt);
             }
         });
@@ -140,24 +149,11 @@ public class GUIMain extends JFrame
         gridBagConstraints.insets = new java.awt.Insets(2, 0, 2, 0);
         panelButtons.add(buttonDisconnect, gridBagConstraints);
 
-        buttonSettings.setText("Settings");
-        buttonSettings.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonSettingsActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.ipadx = 4;
-        gridBagConstraints.ipady = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 0, 2, 0);
-        panelButtons.add(buttonSettings, gridBagConstraints);
-
         buttonRefresh.setText("Refresh");
-        buttonRefresh.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        buttonRefresh.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 buttonRefreshActionPerformed(evt);
             }
         });
@@ -171,8 +167,10 @@ public class GUIMain extends JFrame
         panelButtons.add(buttonRefresh, gridBagConstraints);
 
         buttonCreate.setText("Create Room");
-        buttonCreate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        buttonCreate.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 buttonCreateActionPerformed(evt);
             }
         });
@@ -201,8 +199,10 @@ public class GUIMain extends JFrame
         tableRooms.setShowVerticalLines(false);
         tableRooms.getTableHeader().setResizingAllowed(false);
         tableRooms.getTableHeader().setReorderingAllowed(false);
-        tableRooms.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
+        tableRooms.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mousePressed(java.awt.event.MouseEvent evt)
+            {
                 tableRoomsMousePressed(evt);
             }
         });
@@ -260,7 +260,6 @@ public class GUIMain extends JFrame
         buttonDisconnect.setEnabled(buttonState);
 	buttonJoin.setEnabled(buttonState);
 	buttonRefresh.setEnabled(buttonState);
-	buttonSettings.setEnabled(buttonState);
 	panelRooms.setEnabled(buttonState);
     }
     
@@ -354,10 +353,6 @@ public class GUIMain extends JFrame
         new GUICreateRoom(this).setVisible(true);
     }//GEN-LAST:event_buttonCreateActionPerformed
 
-    private void buttonSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSettingsActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_buttonSettingsActionPerformed
-
     private static GUIMain guimainInstance;
 
     public static GUIMain getInstance()
@@ -375,7 +370,6 @@ public class GUIMain extends JFrame
     private javax.swing.JButton buttonDisconnect;
     private javax.swing.JButton buttonJoin;
     private javax.swing.JButton buttonRefresh;
-    private javax.swing.JButton buttonSettings;
     private javax.swing.JPanel panelButtons;
     private javax.swing.JPanel panelMain;
     private javax.swing.JScrollPane panelRooms;
