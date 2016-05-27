@@ -12,7 +12,9 @@ import com.eclipsesource.json.JsonValue;
 
 import java.awt.Point;
 import java.awt.event.WindowEvent;
+
 import java.net.MalformedURLException;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,12 +27,12 @@ import javax.swing.WindowConstants;
 public class GUIMain extends JFrame
 {
     private ScheduledExecutorService ses;
-    
+
     private final HeartbeatService heartbeatExecutor = new HeartbeatService(
 	ChatupClient.getInstance().getRoomService(),
 	this::checkConnectionStatus
     );
-    
+
     public GUIMain()
     {
 	initComponents();

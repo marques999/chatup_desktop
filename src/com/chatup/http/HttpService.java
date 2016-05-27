@@ -24,7 +24,15 @@ public abstract class HttpService
 	serviceAddress = paramAddress;
 	servicePort = paramPort;
 	servicePath = paramService;
-	serviceUrl = new URL("http://" + serviceAddress + ":" + servicePort + "/" + servicePath);
+	
+	if (servicePort == -1)
+	{
+	    serviceUrl = new URL(serviceAddress + "/" + servicePath);
+	}
+	else
+	{
+	    serviceUrl = new URL(serviceAddress + ":" + servicePort + "/" + servicePath);
+	}
     }
 
     private final int servicePort;
@@ -50,6 +58,20 @@ public abstract class HttpService
 	    actionCallback.execute(Json.object().add("error", "serviceOffline"));
 	}
     }
+    
+    protected Thread getPOST(final HttpRequest httpRequest, final HttpCallback actionCallback)
+    {
+	try
+	{
+	    return new __POST(httpRequest, actionCallback);
+	}
+	catch (final IOException ex)
+	{
+	    actionCallback.execute(Json.object().add("error", "serviceOffline"));
+	}
+	
+	return null;
+    }
 
     protected void POST(final HttpRequest httpRequest, final HttpCallback actionCallback)
     {
@@ -73,10 +95,14 @@ public abstract class HttpService
 	{
 	    final StringBuilder sb = new StringBuilder();
 
-	    sb.append("http://");
 	    sb.append(serviceAddress);
-	    sb.append(":");
-	    sb.append(servicePort);
+	        
+	    if (servicePort > 0)
+	    {
+		sb.append(":");
+		sb.append(servicePort);
+	    }
+	    
 	    sb.append("/");
 	    sb.append(servicePath);
 	    sb.append(paramRequest.getMessage());
@@ -211,13 +237,13 @@ public abstract class HttpService
 		}
 		else
 		{
-		    int responseCode;
+		    int responseCode = 400;
 
 		    try
 		    {
 			responseCode = httpConnection.getResponseCode();
 		    }
-		    catch (IOException ex)
+		    catch (final IOException ex)
 		    {
 			exceptionThrown = true;
 			httpError = HttpResponse.ProtocolError;
@@ -238,12 +264,12 @@ public abstract class HttpService
 				response.append(inputLine);
 			    }
 			}
-			catch (IOException ex)
+			catch (final IOException ex)
 			{
 			    exceptionThrown = true;
 			    httpError = HttpResponse.ProtocolError;
 			}
-
+	
 			if (exceptionThrown)
 			{
 			    httpCallback.execute(Json.object().add("error", httpError.toString()));

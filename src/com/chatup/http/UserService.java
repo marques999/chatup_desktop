@@ -11,12 +11,12 @@ public class UserService extends HttpService
 {
     public UserService(final String serviceAddress, int servicePort) throws MalformedURLException
     {
-	super(serviceAddress, ChatupGlobals.UserServiceUrl, servicePort);
+	super("http://" + serviceAddress, ChatupGlobals.UserServiceUrl, servicePort);
     }
 
-    public void userLogin(final String userEmail, final String userToken, final HttpCallback actionCallback)
+    public void userLogin(final String userToken, final HttpCallback actionCallback)
     {
-	POST(new UserLogin(userEmail, userToken), actionCallback);
+	POST(new UserLogin(userToken), actionCallback);
     }
 
     public void userDisconnect(final String userEmail, final String userToken, final HttpCallback actionCallback)

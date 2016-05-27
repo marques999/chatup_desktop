@@ -1,44 +1,27 @@
 package com.chatup.gui;
 
+import com.chatup.http.FacebookService;
 import com.chatup.http.HttpFields;
 import com.chatup.http.HttpResponse;
+import com.chatup.http.LoginService;
 
 import com.eclipsesource.json.JsonObject;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Properties;
+import java.net.MalformedURLException;
 
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
+import javax.swing.Timer;
 
 public class GUILogin extends JFrame
 {
-    private File propertiesFile;
-    private Properties propertiesObject;
-    private String currentUsername = ChatupGlobals.DefaultUsername;
-    private String currentPassword = ChatupGlobals.DefaultPassword;
+    private ScheduledExecutorService ses;
 
     public static GUILogin getInstance()
     {
@@ -54,165 +37,177 @@ public class GUILogin extends JFrame
 
     public GUILogin()
     {
-	GridBagConstraints gridBagConstraints;
-	setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-	setTitle("Chatup Client : LOGIN");
-	setIconImage(new ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
-	setMinimumSize(new Dimension(300, 500));
-	setResizable(false);
-	panelAvatar.setMinimumSize(new Dimension(0, 256));
-	panelAvatar.setPreferredSize(new Dimension(300, 280));
-	panelAvatar.setLayout(new BorderLayout());
-	labelAvatar.setHorizontalAlignment(SwingConstants.CENTER);
-	labelAvatar.setIcon(new ImageIcon(getClass().getResource("/com/chatup/resources/application-large.png")));
-	panelAvatar.add(labelAvatar, BorderLayout.CENTER);
-	getContentPane().add(panelAvatar, BorderLayout.PAGE_START);
-	panelForm.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
-	panelForm.setLayout(new GridBagLayout());
-	labelUsername.setFont(new Font("Tahoma", 1, 11));
-	labelUsername.setText("Google Account");
-	gridBagConstraints = new GridBagConstraints();
-	gridBagConstraints.weightx = 0.1;
-	gridBagConstraints.insets = new Insets(6, 0, 6, 0);
-	panelForm.add(labelUsername, gridBagConstraints);
-	inputAccount.setText("guest@gmail.com");
-	gridBagConstraints = new GridBagConstraints();
-	gridBagConstraints.gridx = 0;
-	gridBagConstraints.gridy = 1;
-	gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-	panelForm.add(inputAccount, gridBagConstraints);
-	labelPassword.setFont(new Font("Tahoma", 1, 11));
-	labelPassword.setText("Password");
-	gridBagConstraints = new GridBagConstraints();
-	gridBagConstraints.gridx = 0;
-	gridBagConstraints.gridy = 2;
-	gridBagConstraints.insets = new Insets(11, 0, 6, 0);
-	panelForm.add(labelPassword, gridBagConstraints);
-	inputPassword.setText("12345678");
-	gridBagConstraints = new GridBagConstraints();
-	gridBagConstraints.gridx = 0;
-	gridBagConstraints.gridy = 3;
-	gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-	panelForm.add(inputPassword, gridBagConstraints);
-	checkRemember.setText("Remember my credentials");
-	gridBagConstraints = new GridBagConstraints();
-	gridBagConstraints.gridx = 0;
-	gridBagConstraints.gridy = 4;
-	gridBagConstraints.insets = new Insets(12, 0, 12, 0);
-	panelForm.add(checkRemember, gridBagConstraints);
-	getContentPane().add(panelForm, BorderLayout.CENTER);
-	panelButtons.setBorder(BorderFactory.createEmptyBorder(16, 1, 16, 1));
-	buttonLogin.setText("Login");
-	buttonLogin.addActionListener(this::buttonLoginActionPerformed);
-	panelButtons.add(buttonLogin);
-	buttonExit.setText("Exit");
-	buttonExit.addActionListener(this::buttonExitActionPerformed);
-	panelButtons.add(buttonExit);
-	getContentPane().add(panelButtons, BorderLayout.PAGE_END);
-	pack();
-	setLocationRelativeTo(null);
-	readPreferences();
-    }
-
-    private boolean currentRemember = false;
-
-    private String getEncodedString(final String paramInput)
-    {
-	return Base64.getEncoder().encodeToString(paramInput.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private String getDecodedString(final String paramInput)
-    {
-	return new String(Base64.getDecoder().decode(paramInput));
-    }
-
-    private void initializePreferences()
-    {
-	if (propertiesObject == null)
+	try
 	{
-	    propertiesObject = new Properties();
+	    initComponents();
+	    profileService = new FacebookService();
+	    statusService = new LoginService(ChatupGlobals.EndpointStatus);
 	}
-
-	if (propertiesFile == null)
+	catch (final Exception ex)
 	{
-	    propertiesFile = new File(ChatupGlobals.PreferencesFilename);
+	    ChatupGlobals.abort(ex);
 	}
     }
-
-    private boolean savePreferences(boolean rememberPassword)
+    
+    @Override
+    public void setVisible(boolean paramVisible)
     {
-	initializePreferences();
-
-	try (final FileOutputStream fout = new FileOutputStream(propertiesFile))
+	super.setVisible(paramVisible);
+	
+	if (ses == null || ses.isShutdown())
 	{
-	    propertiesObject.setProperty(ChatupGlobals.FieldUsername, getEncodedString(inputAccount.getText()));
-	    propertiesObject.setProperty(ChatupGlobals.FieldRemember, String.valueOf(checkRemember.isSelected()));
+	    ses = Executors.newSingleThreadScheduledExecutor();
+	}
+	
+	actionAuthentication();
+    }
 
-	    if (rememberPassword)
+    private Timer swingTimer;
+    private FacebookService profileService;
+
+    private void startTimer(int secondsDuration)
+    {
+	swingTimer = new Timer(1000, new ActionListener()
+	{
+	    private int currentTick = secondsDuration;
+
+	    @Override
+	    public void actionPerformed(ActionEvent evt)
 	    {
-		propertiesObject.setProperty(ChatupGlobals.FieldPassword, getEncodedString(new String(inputPassword.getPassword())));
+		updateProgress(--currentTick);
+
+		if (currentTick < 1)
+		{
+		    swingTimer.stop();
+		    actionAuthentication();
+		}
 	    }
-	    else
-	    {
-		propertiesObject.setProperty(ChatupGlobals.FieldPassword, ChatupGlobals.DefaultPassword);
-	    }
+	});
 
-	    propertiesObject.store(fout, "chatup");
-	}
-	catch (IOException ex)
+	swingTimer.start();
+    }
+
+    private void updateProgress(int timeoutSeconds)
+    {
+	if (timeoutSeconds > 0)
 	{
-	    return false;
+	    progressBar.setValue(timeoutSeconds);
+	    progressBar.setString(timeoutSeconds + " s");
 	}
-
-	return true;
     }
 
-    private boolean readPreferences()
+    private void actionResetCounter()
     {
-	initializePreferences();
+	progressBar.setValue(0);
+	progressBar.setString("");
+	inputCode.setText("...");
+    }
 
-	try (final FileInputStream fin = new FileInputStream(propertiesFile))
+    private void actionRefreshCode(final String codeString, int timeoutSeconds)
+    {
+	if (codeString != null)
 	{
-	    propertiesObject.load(fin);
-	    currentUsername = getDecodedString(propertiesObject.getProperty(ChatupGlobals.FieldUsername, ChatupGlobals.DefaultUsername));
-	    currentPassword = getDecodedString(propertiesObject.getProperty(ChatupGlobals.FieldPassword, ChatupGlobals.DefaultPassword));
-	    currentRemember = Boolean.valueOf(propertiesObject.getProperty(ChatupGlobals.FieldRemember, ChatupGlobals.DefaultRemember));
+	    inputCode.setText(codeString);
+	    progressBar.setMaximum(timeoutSeconds);
+	    updateProgress(timeoutSeconds);
 	}
-	catch (IOException ex)
+    }
+
+    private void actionAuthentication()
+    {
+	try
 	{
-	    return false;
+	    facebookAuthentication();
 	}
-
-	inputAccount.setText(currentUsername);
-	inputPassword.setText(currentPassword);
-	checkRemember.setSelected(currentRemember);
-
-	return true;
+	catch (final Exception ex)
+	{
+	    ChatupGlobals.abort(ex);
+	}
     }
 
-    private void buttonExitActionPerformed(final ActionEvent paramEvent)
+    private void actionProfileInformation(final String authenticationToken)
     {
-	System.exit(0);
-    }
-
-    private void formEnabled(boolean paramEnabled)
-    {
-	inputPassword.setEnabled(paramEnabled);
-	inputAccount.setEnabled(paramEnabled);
-	checkRemember.setEnabled(paramEnabled);
-	buttonLogin.setEnabled(paramEnabled);
-	buttonExit.setEnabled(paramEnabled);
-    }
-
-    private void buttonLoginActionPerformed(final ActionEvent paramEvent)
-    {
-	final String inputEmail = inputAccount.getText();
-	final String inputToken = new String(inputPassword.getPassword());
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 
 	formEnabled(false);
 
-	chatupInstance.actionUserLogin(inputEmail, inputToken, (jsonValue) ->
+	profileService.requestInformation(authenticationToken, (jsonValue) ->
+	{
+	    if (chatupInstance.validateResponse(this, jsonValue))
+	    {
+		final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
+
+		if (jsonObject == null)
+		{
+		    chatupInstance.showError(this, HttpResponse.EmptyResponse);
+		}
+		else
+		{
+		    final String userEmail = jsonObject.getString("email", null);
+		    final String userName = jsonObject.getString("name", null);
+		    final String userId = jsonObject.getString("id", null);
+
+		    if (userEmail == null || userId == null)
+		    {
+			chatupInstance.showError(this, HttpResponse.MissingParameters);
+		    }
+		    else
+		    {
+			chatupInstance.setLogin(userId, userEmail);
+			
+			final GUIDetails guiDetails = new GUIDetails(this, userEmail, userName);
+			
+			guiDetails.setVisible(true);
+			
+			if (guiDetails.getResult())
+			{
+			    actionLogin(authenticationToken);
+			}
+			
+			actionInterrupt();
+			actionResetCounter();
+		    }
+		}
+	    }
+
+	    formEnabled(true);
+	});
+    }
+
+    private void actionInterrupt()
+    {
+	if (swingTimer != null)
+	{
+	    swingTimer.stop();
+	}
+
+	if (ses != null && !ses.isShutdown())
+	{
+	    ses.shutdown();
+	}
+    }
+
+    private LoginService statusService;
+    
+    private void hideAuthentication()
+    {
+
+    }
+    
+    private void showAuthentication()
+    {
+	labelCode.setVisible(true);
+	labelFacebook.setVisible(true);
+	progressBar.setVisible(true);
+    }
+
+    private void actionLogin(final String authenticationToken)
+    {
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+
+	formEnabled(false);
+
+	chatupInstance.actionUserLogin(authenticationToken, (jsonValue) ->
 	{
 	    if (chatupInstance.validateResponse(this, jsonValue))
 	    {
@@ -238,12 +233,12 @@ public class GUILogin extends JFrame
 			if (serverResponse == HttpResponse.SuccessResponse)
 			{
 			    setVisible(false);
-			    savePreferences(checkRemember.isSelected());
+			    formEnabled(true);
+			    chatupInstance.savePreferences();
 			    GUIMain.getInstance().setVisible(true);
 			}
 			else
 			{
-			    chatupInstance.setLogin(null, null);
 			    chatupInstance.showError(this, serverResponse);
 			}
 		    }
@@ -254,15 +249,235 @@ public class GUILogin extends JFrame
 	});
     }
 
-    private final JPanel panelAvatar = new JPanel();
-    private final JPanel panelButtons = new JPanel();
-    private final JPanel panelForm = new JPanel();
-    private final JLabel labelUsername = new JLabel();
-    private final JLabel labelAvatar = new JLabel();
-    private final JLabel labelPassword = new JLabel();
-    private final JButton buttonExit = new JButton();
-    private final JButton buttonLogin = new JButton();
-    private final JCheckBox checkRemember = new JCheckBox();
-    private final JPasswordField inputPassword = new JPasswordField();
-    private final JTextField inputAccount = new JTextField();
+    private String authenticationToken;
+
+    private void checkStatus()
+    {
+	final ChatupClient chatupInstance = ChatupClient.getInstance();
+
+	statusService.checkStatus(authenticationToken, (jsonValue)->
+	{
+	    if (jsonValue != null && jsonValue.isObject())
+	    {
+		final JsonObject jsonObject = jsonValue.asObject();
+		final String errorMessage = jsonObject.getString("error", null);
+
+		if (errorMessage == null)
+		{
+		    final String userToken = jsonObject.getString("access_token", null);
+
+		    if (userToken == null)
+		    {
+			chatupInstance.showError(this, HttpResponse.EmptyResponse);
+		    }
+		    else
+		    {
+			ses.shutdown();
+			actionProfileInformation(userToken);
+		    }
+		}
+	    }
+	});
+    }
+    
+    private void restartScheduler()    
+    {
+	if (ses == null)
+	{
+	    ses = Executors.newSingleThreadScheduledExecutor();
+	}
+	else
+	{
+	    if (!ses.isShutdown())
+	    {
+		ses.shutdown();
+	    }
+	    
+	    ses = Executors.newSingleThreadScheduledExecutor();
+	}
+    }
+
+    private void facebookAuthentication() throws MalformedURLException
+    {
+	if (swingTimer != null)
+	{
+	    swingTimer.stop();
+	}
+
+	restartScheduler();
+	buttonsEnabled(false);
+	actionResetCounter();
+
+	new LoginService(ChatupGlobals.EndpointLogin).requestLogin((jsonValue) ->
+	{
+	    if (jsonValue.isObject())
+	    {
+		final JsonObject jsonObject = jsonValue.asObject();
+		int refreshInterval = jsonObject.getInt("interval", 0);
+		int timeoutSeconds = jsonObject.getInt("expires_in", 0);
+
+		labelFacebook.setUrl(jsonObject.getString("verification_uri", null));
+		authenticationToken = jsonObject.getString("code", null);
+		actionRefreshCode(jsonObject.getString("user_code", null), timeoutSeconds);
+		startTimer(timeoutSeconds);
+		ses.scheduleWithFixedDelay(
+		    this::checkStatus,
+		    refreshInterval,
+		    refreshInterval,
+		    TimeUnit.SECONDS
+		);
+	    }
+	    else
+	    {
+		inputCode.setText("ERROR");
+	    }
+
+	    buttonsEnabled(true);
+	});
+    }
+
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents()
+    {
+        java.awt.GridBagConstraints gridBagConstraints;
+
+        panelAvatar = new javax.swing.JPanel();
+        labelAvatar = new javax.swing.JLabel();
+        panelForm = new javax.swing.JPanel();
+        labelCode = new javax.swing.JLabel();
+        inputCode = new javax.swing.JTextField();
+        labelFacebook = new com.chatup.gui.JLinkLabel();
+        progressBar = new javax.swing.JProgressBar();
+        panelButtons = new javax.swing.JPanel();
+        buttonLogin = new javax.swing.JButton();
+        buttonExit = new javax.swing.JButton();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Chatup Client : LOGIN");
+        setIconImage(new javax.swing.ImageIcon(getClass().getResource("/com/chatup/resources/application-icon.png")).getImage());
+        setMinimumSize(new java.awt.Dimension(300, 500));
+        setResizable(false);
+
+        panelAvatar.setMinimumSize(new java.awt.Dimension(0, 256));
+        panelAvatar.setPreferredSize(new java.awt.Dimension(300, 280));
+        panelAvatar.setLayout(new java.awt.BorderLayout());
+
+        labelAvatar.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        labelAvatar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/chatup/resources/application-large.png"))); // NOI18N
+        panelAvatar.add(labelAvatar, java.awt.BorderLayout.CENTER);
+
+        getContentPane().add(panelAvatar, java.awt.BorderLayout.PAGE_START);
+
+        panelForm.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 16, 0, 16));
+        panelForm.setLayout(new java.awt.GridBagLayout());
+
+        labelCode.setText("Please enter the following code:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.insets = new java.awt.Insets(6, 0, 6, 0);
+        panelForm.add(labelCode, gridBagConstraints);
+
+        inputCode.setEditable(false);
+        inputCode.setBackground(new java.awt.Color(255, 255, 255));
+        inputCode.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        inputCode.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        inputCode.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        inputCode.setFocusable(false);
+        inputCode.setMargin(new java.awt.Insets(4, 4, 4, 4));
+        inputCode.setMinimumSize(new java.awt.Dimension(115, 36));
+        inputCode.setName(""); // NOI18N
+        inputCode.setPreferredSize(new java.awt.Dimension(115, 36));
+        inputCode.setRequestFocusEnabled(false);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(6, 0, 6, 0);
+        panelForm.add(inputCode, gridBagConstraints);
+
+        labelFacebook.setText("Facebook Login");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(6, 0, 6, 0);
+        panelForm.add(labelFacebook, gridBagConstraints);
+
+        progressBar.setMaximum(420);
+        progressBar.setToolTipText("");
+        progressBar.setMinimumSize(new java.awt.Dimension(115, 14));
+        progressBar.setPreferredSize(new java.awt.Dimension(120, 14));
+        progressBar.setRequestFocusEnabled(false);
+        progressBar.setString("0 s");
+        progressBar.setStringPainted(true);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        panelForm.add(progressBar, gridBagConstraints);
+
+        getContentPane().add(panelForm, java.awt.BorderLayout.CENTER);
+
+        panelButtons.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 1, 16, 1));
+
+        buttonLogin.setText("Request Code");
+        buttonLogin.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                buttonLoginActionPerformed(evt);
+            }
+        });
+        panelButtons.add(buttonLogin);
+
+        buttonExit.setText("Cancel");
+        buttonExit.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                buttonExitActionPerformed(evt);
+            }
+        });
+        panelButtons.add(buttonExit);
+
+        getContentPane().add(panelButtons, java.awt.BorderLayout.PAGE_END);
+
+        pack();
+        setLocationRelativeTo(null);
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void buttonExitActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonExitActionPerformed
+    {//GEN-HEADEREND:event_buttonExitActionPerformed
+	System.exit(0);
+    }//GEN-LAST:event_buttonExitActionPerformed
+
+    private void buttonsEnabled(boolean paramEnabled)
+    {
+	buttonLogin.setEnabled(paramEnabled);
+	buttonExit.setEnabled(paramEnabled);
+    }
+    
+    private void formEnabled(boolean paramEnabled)
+    {
+	buttonsEnabled(paramEnabled);
+	labelCode.setVisible(paramEnabled);
+	labelFacebook.setVisible(paramEnabled);
+	progressBar.setVisible(paramEnabled);
+    }
+
+    private void buttonLoginActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonLoginActionPerformed
+    {//GEN-HEADEREND:event_buttonLoginActionPerformed
+	actionAuthentication();
+    }//GEN-LAST:event_buttonLoginActionPerformed
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonExit;
+    private javax.swing.JButton buttonLogin;
+    private javax.swing.JTextField inputCode;
+    private javax.swing.JLabel labelAvatar;
+    private javax.swing.JLabel labelCode;
+    private com.chatup.gui.JLinkLabel labelFacebook;
+    private javax.swing.JPanel panelAvatar;
+    private javax.swing.JPanel panelButtons;
+    private javax.swing.JPanel panelForm;
+    private javax.swing.JProgressBar progressBar;
+    // End of variables declaration//GEN-END:variables
 }

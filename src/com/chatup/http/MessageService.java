@@ -13,7 +13,7 @@ public class MessageService extends HttpService
 {
     public MessageService(final String serviceAddress, int servicePort) throws MalformedURLException
     {
-	super(serviceAddress, ChatupGlobals.MessageServiceUrl, servicePort);
+	super("http://" + serviceAddress, ChatupGlobals.MessageServiceUrl, servicePort);
     }
 
     public void getMessages(int roomId, long messageTimestamp, final HttpCallback actionCallback)

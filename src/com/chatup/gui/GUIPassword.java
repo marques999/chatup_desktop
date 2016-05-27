@@ -32,7 +32,7 @@ public class GUIPassword extends JDialog
         currentRoom = paramRoom;
         panelContainer.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         panelContainer.setLayout(new BorderLayout(0, 10));
-        labelPrompt.setFont(new Font("Tahoma", 1, 11));
+        labelPrompt.setFont(new Font("Tahoma", Font.BOLD, 11));
         labelPrompt.setHorizontalAlignment(SwingConstants.CENTER);
         labelPrompt.setText("Please enter the room password");
         panelContainer.add(labelPrompt, BorderLayout.PAGE_START);
@@ -53,8 +53,8 @@ public class GUIPassword extends JDialog
         setModal(true);
         setResizable(false);
         setTitle("Private Room");
-        pack();
-        setLocationRelativeTo(paramFrame);
+	pack();
+	setLocationRelativeTo(paramFrame);
     }
 
     private void buttonCancelActionPerformed(final ActionEvent evt)
@@ -110,7 +110,7 @@ public class GUIPassword extends JDialog
 		    }
 		}
 	    }
-	    
+
 	    dispose();
         });
     }

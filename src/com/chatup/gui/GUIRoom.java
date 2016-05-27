@@ -32,7 +32,7 @@ public class GUIRoom extends javax.swing.JFrame
     private final UserModel mUsers;
     private final RefreshMessages mWorker;
     private final MessageService mService;
-     
+
     public GUIRoom(final Room paramRoom, final String serverAddress, int serverPort) throws MalformedURLException
     {
 	mTimestamp = 0L;
@@ -46,22 +46,22 @@ public class GUIRoom extends javax.swing.JFrame
 	mWorker = new RefreshMessages(this);
 	((DefaultCaret)jEditorPane1.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     }
-    
+
     private long mTimestamp;
-    
+
     @Override
     public void setVisible(boolean paramVisible)
     {
 	super.setVisible(paramVisible);
 	new Thread(mWorker).start();
     }
-    
+
     private ScheduledExecutorService mExecutor;
-    
+
     private void parseUsers(final JsonArray jsonArray)
     {
         final ChatupClient chatupInstance = ChatupClient.getInstance();
-        
+
         if (jsonArray == null)
         {
             chatupInstance.showError(this, HttpResponse.InvalidResponse);
@@ -69,7 +69,7 @@ public class GUIRoom extends javax.swing.JFrame
         else
         {
 	    final ArrayList<String> myUsers = new ArrayList<>();
-             
+
             for (final JsonValue jsonMessage : jsonArray)
             {
                 if (!jsonMessage.isString())
@@ -79,18 +79,18 @@ public class GUIRoom extends javax.swing.JFrame
 
                 myUsers.add(jsonMessage.asString());
 	    }
-	    
+
 	    mUsers.refresh(myUsers);
-	    
+
 	    final ArrayList<String> removedUsers = mUsers.getDisconnected();
-	    
+
 	    for (final String userToken : removedUsers)
 	    {
 		notifyUserDisconnected(userToken);
 	    }
-	    
+
 	    final ArrayList<String> connectedUsers = mUsers.getConnected();
-	    
+
 	    for (final String userToken : connectedUsers)
 	    {
 		notifyUserConnected(userToken);
@@ -132,22 +132,22 @@ public class GUIRoom extends javax.swing.JFrame
     private class RefreshMessages implements Runnable
     {
 	private boolean mStop;
-	
+
 	public RefreshMessages(final GUIRoom guiRoom)
 	{
 	    mParent = guiRoom;
 	    mStop = false;
 	    mInstance = ChatupClient.getInstance();
 	}
-	
+
 	private final GUIRoom mParent;
 	private final ChatupClient mInstance;
-	
+
 	public void stopExecuting()
 	{
 	    mStop = true;
 	}
-	
+
 	@Override
 	public void run()
 	{
@@ -157,7 +157,7 @@ public class GUIRoom extends javax.swing.JFrame
 		{
 		    return;
 		}
-		
+
 		if (mInstance.validateResponse(mParent, jsonValue))
 		{
 		    final JsonObject jsonObject = mInstance.extractResponse(jsonValue);
@@ -184,7 +184,7 @@ public class GUIRoom extends javax.swing.JFrame
 			parseMessage(jsonMessages.asArray());
 			mTimestamp = Instant.now().toEpochMilli();
 		    }
-		    
+
 		    run();
 		}
 		else
@@ -279,7 +279,7 @@ public class GUIRoom extends javax.swing.JFrame
 	buttonSend.setEnabled(!buttonSend.isEnabled());
 	inputMessage.setEnabled(!inputMessage.isEnabled());
     }
-    
+
     private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
     {//GEN-HEADEREND:event_formWindowClosing
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
@@ -333,7 +333,7 @@ public class GUIRoom extends javax.swing.JFrame
     private void notifyUserConnected(final String userToken)
     {
 	final HTMLDocument doc = (HTMLDocument) jEditorPane1.getDocument();
-	
+
 	try
 	{
 	    doc.insertAfterEnd(doc.getCharacterElement(doc.getLength()), "<i>" + userToken + " has joined room.</i><br>");
@@ -342,11 +342,11 @@ public class GUIRoom extends javax.swing.JFrame
 	{
 	}
     }
-    
+
     private void notifyUserDisconnected(final String userToken)
     {
 	final HTMLDocument doc = (HTMLDocument) jEditorPane1.getDocument();
-	
+
 	try
 	{
 	    doc.insertAfterEnd(doc.getCharacterElement(doc.getLength()), "<i>" + userToken + " has left room.</i><br>");
@@ -355,7 +355,7 @@ public class GUIRoom extends javax.swing.JFrame
 	{
 	}
     }
-    
+
     private void insertMessage(Message paramMessage)
     {
 	final HTMLDocument doc = (HTMLDocument) jEditorPane1.getDocument();

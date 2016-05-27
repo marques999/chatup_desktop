@@ -72,10 +72,10 @@ public class RoomModel extends AbstractTableModel
 	}
 
 	final Room newRoom = new Room(
-		roomId,
-		jsonObject.getString(HttpFields.RoomName, null),
-		jsonObject.getBoolean(HttpFields.RoomPrivate, false),
-		jsonObject.getString(HttpFields.UserToken, null)
+	    roomId,
+	    jsonObject.getString(HttpFields.RoomName, null),
+	    jsonObject.getBoolean(HttpFields.RoomPrivate, false),
+	    jsonObject.getString(HttpFields.UserToken, null)
 	);
 
 	rooms.add(newRoom);

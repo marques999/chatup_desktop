@@ -15,7 +15,16 @@ import com.eclipsesource.json.JsonValue;
 import java.awt.Component;
 import java.awt.EventQueue;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import java.nio.charset.StandardCharsets;
+
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.Properties;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -23,7 +32,10 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 public class ChatupClient
 {
-    private static ChatupClient instance;
+    private File propertiesFile;
+    private Properties propertiesObject;
+    private HashMap<Integer, GUIRoom> rooms;
+    private UserService userService;
 
     private ChatupClient()
     {
@@ -39,10 +51,84 @@ public class ChatupClient
 	}
     }
 
-    public RoomService getRoomService()
+    //--------------------------------------------------------------------------
+
+    private static ChatupClient instance;
+
+    public static ChatupClient getInstance()
     {
-	return roomService;
+	if (instance == null)
+	{
+	    instance = new ChatupClient();
+	}
+
+	return instance;
     }
+
+    //--------------------------------------------------------------------------
+
+    private void initializePreferences()
+    {
+	if (propertiesObject == null)
+	{
+	    propertiesObject = new Properties();
+	}
+
+	if (propertiesFile == null)
+	{
+	    propertiesFile = new File(ChatupGlobals.PreferencesFilename);
+	}
+    }
+
+    private boolean readPreferences()
+    {
+	initializePreferences();
+
+	try (final FileInputStream fin = new FileInputStream(propertiesFile))
+	{
+	    propertiesObject.load(fin);
+	    sessionEmail = getDecodedString(propertiesObject.getProperty(ChatupGlobals.FieldUserEmail, null));
+	    sessionToken = getDecodedString(propertiesObject.getProperty(ChatupGlobals.FieldUserToken, null));
+	}
+	catch (final IOException ex)
+	{
+	    return false;
+	}
+
+	return true;
+    }
+
+    boolean savePreferences()
+    {
+	initializePreferences();
+
+	try (final FileOutputStream fout = new FileOutputStream(propertiesFile))
+	{
+	    propertiesObject.setProperty(ChatupGlobals.FieldUserEmail, getEncodedString(sessionEmail));
+	    propertiesObject.setProperty(ChatupGlobals.FieldUserToken, getEncodedString(sessionToken));
+	    propertiesObject.store(fout, "chatup");
+	}
+	catch (final IOException ex)
+	{
+	    return false;
+	}
+
+	return true;
+    }
+
+    //--------------------------------------------------------------------------
+
+    private String getEncodedString(final String paramInput)
+    {
+	return Base64.getEncoder().encodeToString(paramInput.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String getDecodedString(final String paramInput)
+    {
+	return new String(Base64.getDecoder().decode(paramInput));
+    }
+
+    //--------------------------------------------------------------------------
 
     boolean validateResponse(final Component parent, final JsonValue jsonValue)
     {
@@ -67,35 +153,84 @@ public class ChatupClient
 		}
 	    }
 	}
-            
+
 	return !receivedError;
     }
 
-    protected void showError(final Component parent, final HttpResponse httpResponse)
+    boolean validateToken(final String userToken)
+    {
+	return userToken != null && sessionToken.equals(userToken);
+    }
+
+    final HttpResponse validateUser(String userEmail, String userToken)
+    {
+	if (userEmail.equals(sessionEmail) && userToken.equals(sessionToken))
+	{
+	    return HttpResponse.SuccessResponse;
+	}
+
+	return HttpResponse.OperationFailed;
+    }
+
+    //--------------------------------------------------------------------------
+
+    void showError(final Component parent, final HttpResponse httpResponse)
     {
 	JOptionPane.showMessageDialog(parent, HttpResponse.getErrorMessage(httpResponse), "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
     }
 
-    protected void showError(final Component parent, final String errorMessage)
+    void showError(final Component parent, final String errorMessage)
     {
 	JOptionPane.showMessageDialog(parent, errorMessage, "Chatup Client : ERROR", JOptionPane.ERROR_MESSAGE);
     }
 
-    protected JsonArray extractArray(final JsonValue jsonObject)
+    //--------------------------------------------------------------------------
+
+    final JsonArray extractArray(final JsonValue jsonObject)
     {
 	return jsonObject.isArray() ? jsonObject.asArray() : null;
     }
 
-    protected JsonObject extractResponse(final JsonValue jsonObject)
+    final JsonObject extractResponse(final JsonValue jsonObject)
     {
 	return jsonObject.isObject() ? jsonObject.asObject() : null;
     }
 
-    private HashMap<Integer, GUIRoom> rooms;
+    //--------------------------------------------------------------------------
+
     private RoomService roomService;
-    private UserService userService;
+
+    public RoomService getRoomService()
+    {
+	return roomService;
+    }
+
+    //--------------------------------------------------------------------------
+
     private String sessionToken;
+
+    public final String getToken()
+    {
+	return sessionToken;
+    }
+
+    public void setLogin(final String userId, final String userEmail)
+    {
+	sessionToken = userId;
+	sessionEmail = userEmail;
+    }
+
+    //--------------------------------------------------------------------------
+
     private String sessionEmail;
+
+    public final String getEmail()
+    {
+	return sessionEmail;
+    }
+
+    //--------------------------------------------------------------------------
+
     private RoomModel myRooms = new RoomModel();
 
     public RoomModel getRooms()
@@ -103,15 +238,7 @@ public class ChatupClient
 	return myRooms;
     }
 
-    public static ChatupClient getInstance()
-    {
-	if (instance == null)
-	{
-	    instance = new ChatupClient();
-	}
-
-	return instance;
-    }
+    //--------------------------------------------------------------------------
 
     public HttpResponse responseGetRooms(final JsonArray jsonArray)
     {
@@ -123,36 +250,11 @@ public class ChatupClient
 	return HttpResponse.OperationFailed;
     }
 
-    public String getUser()
-    {
-	return "marques999";
-    }
+    //--------------------------------------------------------------------------
 
-    public void setLogin(final String userEmail, final String userPassword)
+    public void actionUserLogin(final String userToken, final HttpCallback actionCallback)
     {
-	sessionEmail = userEmail;
-	sessionToken = userPassword;
-    }
-
-    public HttpResponse validateUser(String userEmail, String userToken)
-    {
-	if (userEmail.equals(sessionEmail) && userToken.equals(sessionToken))
-	{
-	    return HttpResponse.SuccessResponse;
-	}
-
-	return HttpResponse.OperationFailed;
-    }
-
-    public void actionGetRooms(final HttpCallback httpCallback)
-    {
-	roomService.getRooms(sessionToken, httpCallback);
-    }
-
-    public void actionUserLogin(final String userEmail, final String userToken, final HttpCallback actionCallback)
-    {
-	setLogin(userEmail, userToken);
-	userService.userLogin(userEmail, userToken, actionCallback);
+	userService.userLogin(userToken, actionCallback);
     }
 
     public void actionUserDisconnect(final HttpCallback httpCallback)
@@ -160,14 +262,16 @@ public class ChatupClient
 	userService.userDisconnect(sessionEmail, sessionToken, httpCallback);
     }
 
-    public void actionLeaveRoom(int roomId, final HttpCallback httpCallback)
-    {
-	roomService.leaveRoom(roomId, httpCallback);
-    }
+    //--------------------------------------------------------------------------
 
     public void actionCreateRoom(final String roomName, final String roomPassword, final HttpCallback httpCallback)
     {
 	roomService.createRoom(roomName, roomPassword, httpCallback);
+    }
+
+    public void actionGetRooms(final HttpCallback httpCallback)
+    {
+	roomService.getRooms(sessionToken, httpCallback);
     }
 
     public void actionJoinRoom(int roomid, final String roomPassword, final HttpCallback httpCallback)
@@ -175,25 +279,12 @@ public class ChatupClient
 	roomService.joinRoom(roomid, roomPassword, httpCallback);
     }
 
-    public static void main(String args[])
+    public void actionLeaveRoom(int roomId, final HttpCallback httpCallback)
     {
-	try
-	{
-	    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-	}
-	catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex)
-	{
-	}
-
-	EventQueue.invokeLater(() -> {
-	    new GUILogin().setVisible(true);
-	});
+	roomService.leaveRoom(roomId, httpCallback);
     }
 
-    public final String getToken()
-    {
-	return sessionToken;
-    }
+    //--------------------------------------------------------------------------
 
     public int createRoom(final JsonObject jsonObject)
     {
@@ -210,8 +301,22 @@ public class ChatupClient
 	rooms.put(id, currentRoom);
     }
 
-    public boolean validateToken(final String userToken)
+    //--------------------------------------------------------------------------
+
+    public static void main(String args[])
     {
-	return userToken != null && sessionToken.equals(userToken);
+	try
+	{
+	    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+	}
+	catch (final ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex)
+	{
+	    ChatupGlobals.abort(ex);
+	}
+
+	EventQueue.invokeLater(() -> {
+	    ChatupClient.getInstance();
+	    new GUILogin().setVisible(true);
+	});
     }
 }

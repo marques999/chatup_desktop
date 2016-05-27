@@ -14,12 +14,12 @@ public class RoomService extends HttpService
 {
     public RoomService(final String serviceAddress, int servicePort) throws MalformedURLException
     {
-	super(serviceAddress, ChatupGlobals.RoomServiceUrl, servicePort);
+	super("http://" + serviceAddress, ChatupGlobals.RoomServiceUrl, servicePort);
     }
 
     public void getRooms(final String userToken, final HttpCallback actionCallback)
     {
-	GET(new GetRooms(userToken), 65536, actionCallback);
+	GET(new GetRooms(userToken), 0, actionCallback);
     }
 
     public void createRoom(final String roomName, final String roomPassword, final HttpCallback actionCallback)
