@@ -33,7 +33,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
-public class GUILogin extends JFrame
+class GUILogin extends JFrame
 {
     private File propertiesFile;
     private Properties propertiesObject;

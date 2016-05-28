@@ -22,7 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.WindowConstants;
 
-public class GUIMain extends JFrame
+class GUIMain extends JFrame
 {
     private ScheduledExecutorService ses;
     
