@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
-public class GUILogin extends JFrame
+class GUILogin extends JFrame
 {
     private ScheduledExecutorService ses;
 
