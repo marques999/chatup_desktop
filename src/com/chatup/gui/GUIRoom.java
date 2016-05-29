@@ -11,11 +11,12 @@ import com.chatup.model.UserModel;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
+import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
+
 import java.io.IOException;
+
 import java.time.Instant;
 
 import java.util.ArrayList;
@@ -58,14 +59,21 @@ public class GUIRoom extends javax.swing.JFrame
 	
 	jEditorPane1.setEnabled(false);
 
-	final Timer refershTimer = new Timer(500, (final ActionEvent e) ->
+	if (paramVisible)
 	{
-	    jEditorPane1.setEnabled(true);
-	    new Thread(mWorker).start();
-	});
-	
-	refershTimer.setRepeats(false);
-	refershTimer.start();
+	    final Timer refershTimer = new Timer(500, (final ActionEvent e) ->
+	    {
+		jEditorPane1.setEnabled(true);
+		new Thread(mWorker).start();
+	    });
+
+	    refershTimer.setRepeats(false);
+	    refershTimer.start();
+	}
+	else
+	{
+	    mWorker.stopExecuting();
+	}
     }
 
     private ScheduledExecutorService mExecutor;

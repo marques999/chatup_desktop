@@ -13,8 +13,6 @@ import com.eclipsesource.json.JsonValue;
 import java.awt.Point;
 import java.awt.event.WindowEvent;
 
-import java.net.MalformedURLException;
-
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,16 +26,10 @@ public class GUIMain extends JFrame
 {
     private ScheduledExecutorService ses;
 
-    private final HeartbeatService heartbeatExecutor = new HeartbeatService(
-	ChatupClient.getInstance().getRoomService(),
-	this::checkConnectionStatus
-    );
-
     public GUIMain()
     {
 	initComponents();
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-	ses = Executors.newSingleThreadScheduledExecutor();
     }
     
     private void checkConnectionStatus(final JsonValue jsonValue)
@@ -223,12 +215,27 @@ public class GUIMain extends JFrame
     {
 	super.setVisible(paramVisible);
 	
-	if (ses.isShutdown())
+	final HeartbeatService heartbeatExecutor = new HeartbeatService(
+	    ChatupClient.getInstance().getUserService(),
+	    this::checkConnectionStatus
+	);
+	
+	if (paramVisible)    
 	{
-	    ses = Executors.newSingleThreadScheduledExecutor();
-	}
+	    if (ses == null || ses.isShutdown())
+	    {
+		ses = Executors.newSingleThreadScheduledExecutor();
+	    }
 
-	ses.scheduleWithFixedDelay(heartbeatExecutor, 5, 5, TimeUnit.SECONDS);
+	    ses.scheduleWithFixedDelay(heartbeatExecutor, 5, 5, TimeUnit.SECONDS);
+	}
+	else
+	{
+	    if (ses != null && !ses.isShutdown())
+	    {
+		ses.shutdown();
+	    }
+	}
     }
     
     private void buttonJoinActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonJoinActionPerformed
@@ -269,7 +276,6 @@ public class GUIMain extends JFrame
     {
 	dispose();
 	ses.shutdown();
-	ChatupClient.getInstance().setLogin(null, null);
 	GUILogin.getInstance().setVisible(true);
     }
 
@@ -301,8 +307,6 @@ public class GUIMain extends JFrame
 		    else
 		    {
 			final HttpResponse serverResponse = chatupInstance.validateUser(userEmail, userToken);
-
-			chatupInstance.setLogin(null, null);
 
 			if (serverResponse == HttpResponse.SuccessResponse)
 			{

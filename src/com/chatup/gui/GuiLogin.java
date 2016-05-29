@@ -13,8 +13,6 @@ import java.awt.event.ActionListener;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 import javax.swing.Timer;
@@ -54,12 +52,22 @@ public class GUILogin extends JFrame
     {
 	super.setVisible(paramVisible);
 	
-	if (ses == null || ses.isShutdown())
+	if (paramVisible) 
 	{
-	    ses = Executors.newSingleThreadScheduledExecutor();
+	    if (ses == null || ses.isShutdown())
+	    {
+		ses = Executors.newSingleThreadScheduledExecutor();
+	    }
+
+	    actionAuthentication();
 	}
-	
-	actionAuthentication();
+	else
+	{
+	    if (ses != null && !ses.isShutdown())
+	    {
+		ses.shutdown();
+	    }
+	}
     }
 
     private Timer swingTimer;

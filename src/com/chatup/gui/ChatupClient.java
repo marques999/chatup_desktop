@@ -200,9 +200,9 @@ public class ChatupClient
 
     private RoomService roomService;
 
-    public RoomService getRoomService()
+    public UserService getUserService()
     {
-	return roomService;
+	return userService;
     }
 
     //--------------------------------------------------------------------------
