@@ -22,7 +22,7 @@ public class HeartbeatService implements Runnable
 	serviceUrl = "http://" 
 	    + httpService.getAddress() + ":" 
 	    + httpService.getPort() + "/" 
-	    + ChatupGlobals.HeartbeatServiceUrl
+	    + ChatupGlobals.HeartbeatService
 	    + new Heartbeat(ChatupClient.getInstance().getToken()).getMessage();
 	httpCallback = paramCallback;
     }

@@ -7,13 +7,11 @@ import com.chatup.model.GetMessages;
 import com.chatup.model.Message;
 import com.chatup.model.SendMessage;
 
-import java.net.MalformedURLException;
-
 public class MessageService extends HttpService
 {
-    public MessageService(final String serviceAddress, int servicePort) throws MalformedURLException
+    public MessageService(final String serviceAddress, int servicePort) throws Exception
     {
-	super("http://" + serviceAddress, ChatupGlobals.MessageServiceUrl, servicePort);
+	super(serviceAddress, ChatupGlobals.MessageService, servicePort);
     }
 
     public void getMessages(int roomId, long messageTimestamp, final HttpCallback actionCallback)

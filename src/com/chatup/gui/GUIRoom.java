@@ -11,16 +11,18 @@ import com.chatup.model.UserModel;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.time.Instant;
 
 import java.util.ArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 
 import javax.swing.ImageIcon;
+import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
@@ -33,7 +35,7 @@ public class GUIRoom extends javax.swing.JFrame
     private final RefreshMessages mWorker;
     private final MessageService mService;
 
-    public GUIRoom(final Room paramRoom, final String serverAddress, int serverPort) throws MalformedURLException
+    public GUIRoom(final Room paramRoom, final String serverAddress, int serverPort) throws Exception
     {
 	mTimestamp = 0L;
 	mRoom = paramRoom;
@@ -53,7 +55,17 @@ public class GUIRoom extends javax.swing.JFrame
     public void setVisible(boolean paramVisible)
     {
 	super.setVisible(paramVisible);
-	new Thread(mWorker).start();
+	
+	jEditorPane1.setEnabled(false);
+
+	final Timer refershTimer = new Timer(500, (final ActionEvent e) ->
+	{
+	    jEditorPane1.setEnabled(true);
+	    new Thread(mWorker).start();
+	});
+	
+	refershTimer.setRepeats(false);
+	refershTimer.start();
     }
 
     private ScheduledExecutorService mExecutor;
@@ -81,20 +93,6 @@ public class GUIRoom extends javax.swing.JFrame
 	    }
 
 	    mUsers.refresh(myUsers);
-
-	    final ArrayList<String> removedUsers = mUsers.getDisconnected();
-
-	    for (final String userToken : removedUsers)
-	    {
-		notifyUserDisconnected(userToken);
-	    }
-
-	    final ArrayList<String> connectedUsers = mUsers.getConnected();
-
-	    for (final String userToken : connectedUsers)
-	    {
-		notifyUserConnected(userToken);
-	    }
         }
     }
 
@@ -151,6 +149,8 @@ public class GUIRoom extends javax.swing.JFrame
 	@Override
 	public void run()
 	{
+	    jEditorPane1.setEnabled(false);
+	    
 	    mService.getMessages(mRoom.getId(), mTimestamp, (jsonValue) ->
 	    {
 		if (mStop)
@@ -191,6 +191,8 @@ public class GUIRoom extends javax.swing.JFrame
 		{
 		    dispatchEvent(new WindowEvent(mParent, WindowEvent.WINDOW_CLOSING));
 		}
+		
+		jEditorPane1.setEnabled(true);
 	    });
 	}
     }
@@ -294,17 +296,14 @@ public class GUIRoom extends javax.swing.JFrame
                 final JsonObject jsonObject = chatupInstance.extractResponse(jsonValue);
 		final String userToken = jsonObject.getString(HttpFields.UserToken, null);
 
-		if (ChatupClient.getInstance().validateToken(userToken))
-		{
-		    dispose();
-		}
-		else
-		{
+		if (!ChatupClient.getInstance().validateToken(userToken))
+		{		   
 		    chatupInstance.showError(this, HttpResponse.InvalidToken);
 		}
 	    }
 
 	    toggleButtons();
+	    dispose();
 	});
     }//GEN-LAST:event_formWindowClosing
 
@@ -325,35 +324,13 @@ public class GUIRoom extends javax.swing.JFrame
 
 	mService.sendMessage(paramMessage, (jsonValue) ->
 	{
-	    ChatupClient.getInstance().validateResponse(this, jsonValue);
+	    if (ChatupClient.getInstance().validateResponse(this, jsonValue) == false)
+	    {
+		dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+	    }
+	    
 	    toggleButtons();
 	});
-    }
-
-    private void notifyUserConnected(final String userToken)
-    {
-	final HTMLDocument doc = (HTMLDocument) jEditorPane1.getDocument();
-
-	try
-	{
-	    doc.insertAfterEnd(doc.getCharacterElement(doc.getLength()), "<i>" + userToken + " has joined room.</i><br>");
-	}
-	catch (BadLocationException | IOException ex)
-	{
-	}
-    }
-
-    private void notifyUserDisconnected(final String userToken)
-    {
-	final HTMLDocument doc = (HTMLDocument) jEditorPane1.getDocument();
-
-	try
-	{
-	    doc.insertAfterEnd(doc.getCharacterElement(doc.getLength()), "<i>" + userToken + " has left room.</i><br>");
-	}
-	catch (BadLocationException | IOException ex)
-	{
-	}
     }
 
     private void insertMessage(Message paramMessage)
@@ -372,7 +349,7 @@ public class GUIRoom extends javax.swing.JFrame
 
 	sb.append("<strong>");
 	sb.append(paramMessage.getSender());
-	sb.append("</strong> @ <span>");
+	sb.append("</strong> | <span>");
 	sb.append(ChatupGlobals.formatDate(paramMessage.getTimestamp()));
 	sb.append("</span><br>");
 	sb.append(paramMessage.getContents());

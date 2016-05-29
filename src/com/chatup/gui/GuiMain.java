@@ -24,7 +24,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.WindowConstants;
 
-class GUIMain extends JFrame
+public class GUIMain extends JFrame
 {
     private ScheduledExecutorService ses;
 
@@ -447,16 +447,23 @@ class GUIMain extends JFrame
                             }
                             else
                             {
+				GUIRoom guiRoom;
+				
                                 try
                                 {
-                                    GUIRoom guiRoom = new GUIRoom(currentRoom, serverAddress, serverPort);
-                                    chatupInstance.insertRoom(currentRoom.getId(), guiRoom);
-                                    guiRoom.setVisible(true);
+                                    guiRoom = new GUIRoom(currentRoom, serverAddress, serverPort);
                                 }
-                                catch (MalformedURLException ex)
+                                catch (final Exception ex)
                                 {
-                                    chatupInstance.showError(this, HttpResponse.ServiceOffline);
+				    guiRoom = null;
+                                    chatupInstance.showError(this, HttpResponse.ProtocolError);
                                 }
+				
+				if (guiRoom != null)
+				{
+				    chatupInstance.insertRoom(currentRoom.getId(), guiRoom);
+                                    guiRoom.setVisible(true);
+				}
                             }
                         }
                         else

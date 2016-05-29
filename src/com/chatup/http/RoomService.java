@@ -8,13 +8,11 @@ import com.chatup.model.LeaveRoom;
 import com.chatup.model.GetRooms;
 import com.chatup.model.JoinRoom;
 
-import java.net.MalformedURLException;
-
 public class RoomService extends HttpService
 {
-    public RoomService(final String serviceAddress, int servicePort) throws MalformedURLException
+    public RoomService(final String serviceAddress, int servicePort) throws Exception
     {
-	super("http://" + serviceAddress, ChatupGlobals.RoomServiceUrl, servicePort);
+	super(serviceAddress, ChatupGlobals.RoomService, servicePort);
     }
 
     public void getRooms(final String userToken, final HttpCallback actionCallback)

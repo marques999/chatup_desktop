@@ -169,7 +169,7 @@ public class ChatupClient
 	    return HttpResponse.SuccessResponse;
 	}
 
-	return HttpResponse.OperationFailed;
+	return HttpResponse.AuthenticationFailed;
     }
 
     //--------------------------------------------------------------------------
@@ -298,6 +298,10 @@ public class ChatupClient
 
     void insertRoom(int id, GUIRoom currentRoom)
     {
+	if (rooms.containsKey(id)) {
+	    rooms.remove(id).dispose();
+	}
+	
 	rooms.put(id, currentRoom);
     }
 

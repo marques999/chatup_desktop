@@ -10,16 +10,16 @@ import com.eclipsesource.json.JsonObject;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import java.net.MalformedURLException;
-
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
-class GUILogin extends JFrame
+public class GUILogin extends JFrame
 {
     private ScheduledExecutorService ses;
 
@@ -153,19 +153,18 @@ class GUILogin extends JFrame
 		    }
 		    else
 		    {
-			chatupInstance.setLogin(userId, userEmail);
+			chatupInstance.setLogin(authenticationToken, userEmail);
+			actionInterrupt();
+			actionResetCounter();
 			
 			final GUIDetails guiDetails = new GUIDetails(this, userEmail, userName);
 			
 			guiDetails.setVisible(true);
-			
+
 			if (guiDetails.getResult())
 			{
 			    actionLogin(authenticationToken);
 			}
-			
-			actionInterrupt();
-			actionResetCounter();
 		    }
 		}
 	    }
@@ -188,24 +187,29 @@ class GUILogin extends JFrame
     }
 
     private LoginService statusService;
+  
+    private void showAuthentication()
+    {
+	buttonsEnabled(true);
+	inputCode.setVisible(true);
+	labelFacebook.setVisible(true);
+	progressBar.setVisible(true);
+    }
     
     private void hideAuthentication()
     {
-
-    }
-    
-    private void showAuthentication()
-    {
-	labelCode.setVisible(true);
-	labelFacebook.setVisible(true);
-	progressBar.setVisible(true);
+	buttonsEnabled(false);
+	inputCode.setVisible(false);
+	labelFacebook.setVisible(false);
+	progressBar.setVisible(false);
     }
 
     private void actionLogin(final String authenticationToken)
     {
 	final ChatupClient chatupInstance = ChatupClient.getInstance();
 
-	formEnabled(false);
+	hideAuthentication();
+	labelCode.setText("Authorizing with the server...");
 
 	chatupInstance.actionUserLogin(authenticationToken, (jsonValue) ->
 	{
@@ -233,19 +237,21 @@ class GUILogin extends JFrame
 			if (serverResponse == HttpResponse.SuccessResponse)
 			{
 			    setVisible(false);
-			    formEnabled(true);
 			    chatupInstance.savePreferences();
 			    GUIMain.getInstance().setVisible(true);
 			}
 			else
-			{
+			{ 
 			    chatupInstance.showError(this, serverResponse);
+			    actionAuthentication();
 			}
 		    }
 		}
 	    }
 
-	    formEnabled(true);
+	    labelCode.setText("Please enter the following code:");
+	    showAuthentication();
+	    formEnabled(true);   
 	});
     }
 
@@ -279,7 +285,7 @@ class GUILogin extends JFrame
 	    }
 	});
     }
-    
+
     private void restartScheduler()    
     {
 	if (ses == null)
@@ -297,7 +303,7 @@ class GUILogin extends JFrame
 	}
     }
 
-    private void facebookAuthentication() throws MalformedURLException
+    private void facebookAuthentication() throws Exception
     {
 	if (swingTimer != null)
 	{
@@ -458,7 +464,6 @@ class GUILogin extends JFrame
     private void formEnabled(boolean paramEnabled)
     {
 	buttonsEnabled(paramEnabled);
-	labelCode.setVisible(paramEnabled);
 	labelFacebook.setVisible(paramEnabled);
 	progressBar.setVisible(paramEnabled);
     }

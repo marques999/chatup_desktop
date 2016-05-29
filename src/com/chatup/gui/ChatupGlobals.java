@@ -9,15 +9,15 @@ public class ChatupGlobals
     public static final String FieldUserToken = "x5TnrbTc";
     public static final String EndpointLogin = "login";
     public static final String EndpointStatus = "login_status";
-    public static final String FacebookGraphUrl = "https://graph.facebook.com";
+    public static final String FacebookService = "graph.facebook.com";
     public static final String FacebookPermissions = "public_profile,email";
     public static final String FacebookToken = "1635174376807010|d0a06fa7bafaa218bd7b7169dd7ae934";
     public static final String PreferencesFilename = "ChatupClient.prefs";
-    public static final String HeartbeatServiceUrl = "HeartbeatService";
-    public static final String MessageServiceUrl = "MessageService";
-    public static final String UserServiceUrl = "UserService";
-    public static final String RoomServiceUrl = "RoomService";
-    public static final String ServerAddress = "chatup.ddns.net";
+    public static final String HeartbeatService = "HeartbeatService";
+    public static final String MessageService = "MessageService";
+    public static final String UserService = "UserService";
+    public static final String RoomService = "RoomService";
+    public static final String ServerAddress = "localhost";
     public static final String JsonType = "application/json";
     public static final String UserAgent = "Mozilla/5.0";
 

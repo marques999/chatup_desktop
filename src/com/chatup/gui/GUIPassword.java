@@ -92,15 +92,22 @@ public class GUIPassword extends JDialog
 			}
 			else
 			{
+			    GUIRoom guiRoom;
+
 			    try
 			    {
-				GUIRoom guiRoom = new GUIRoom(currentRoom, serverAddress, serverPort);
+				guiRoom = new GUIRoom(currentRoom, serverAddress, serverPort);
+			    }
+			    catch (final Exception ex)
+			    {
+				guiRoom = null;
+				chatupInstance.showError(this, HttpResponse.ProtocolError);
+			    }
+
+			    if (guiRoom != null)
+			    {
 				chatupInstance.insertRoom(currentRoom.getId(), guiRoom);
 				guiRoom.setVisible(true);
-			    }
-			    catch (final MalformedURLException ex)
-			    {
-				chatupInstance.showError(this, HttpResponse.ServiceOffline);
 			    }
 			}
 		    }

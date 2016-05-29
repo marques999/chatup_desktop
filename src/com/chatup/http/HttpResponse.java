@@ -64,7 +64,7 @@ public enum HttpResponse
 	case WrongPassword:
 	     return "The room password you entered is incorrect!";
 	case ServiceOffline:
-	    return "This service is currenttly not available!";
+	    return "This service is currently not available!";
 	}
 
 	return httpResponse.toString();

@@ -7,19 +7,28 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-
 import java.net.HttpURLConnection;
+
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 public abstract class HttpService
 {
     private final URL serviceUrl;
+    private final SSLContext sslContext;
     private final String serviceAddress;
     private final String servicePath;
 
-    HttpService(final String paramAddress, final String paramService, int paramPort) throws MalformedURLException
+    HttpService(final String paramAddress, final String paramService, int paramPort) throws MalformedURLException, NoSuchAlgorithmException, KeyManagementException
     {
 	serviceAddress = paramAddress;
 	servicePort = paramPort;
@@ -27,12 +36,38 @@ public abstract class HttpService
 	
 	if (servicePort == -1)
 	{
-	    serviceUrl = new URL(serviceAddress + "/" + servicePath);
+	    serviceUrl = new URL("https://" + serviceAddress + "/" + servicePath);
 	}
 	else
 	{
-	    serviceUrl = new URL(serviceAddress + ":" + servicePort + "/" + servicePath);
+	    serviceUrl = new URL("http://" + serviceAddress + ":" + servicePort + "/" + servicePath);
 	}
+
+	final TrustManager[] trustAllCerts = new TrustManager[]
+	{
+	    new X509TrustManager()
+	    {
+		@Override
+		public java.security.cert.X509Certificate[] getAcceptedIssuers()
+		{
+		    return null;
+		}
+
+		@Override
+		public void checkClientTrusted(X509Certificate[] certs, String authType)
+		{
+		}
+
+		@Override
+		public void checkServerTrusted(X509Certificate[] certs, String authType)
+		{
+		}
+	    }
+	};
+
+	sslContext = SSLContext.getInstance("TLS");
+	sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+//	HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
     }
 
     private final int servicePort;
@@ -94,7 +129,16 @@ public abstract class HttpService
 	public __GET(final HttpRequest paramRequest, int paramTimeout, final HttpCallback paramCallback) throws IOException
 	{
 	    final StringBuilder sb = new StringBuilder();
-
+	    
+	    if (servicePort > 0)
+	    {
+		sb.append("http://");
+	    }
+	    else
+	    {
+		sb.append("https://");
+	    }
+	    
 	    sb.append(serviceAddress);
 	        
 	    if (servicePort > 0)
@@ -107,7 +151,7 @@ public abstract class HttpService
 	    sb.append(servicePath);
 	    sb.append(paramRequest.getMessage());
 	    System.out.println("Sending GET request to URL : " + sb.toString());
-	    httpConnection = (HttpURLConnection) new URL(sb.toString()).openConnection();
+	    httpConnection = (HttpURLConnection) (new URL(sb.toString()).openConnection()); 
 	    httpRequest = paramRequest;
 	    httpTimeout = paramTimeout;
 	    httpCallback = paramCallback;
@@ -173,7 +217,7 @@ public abstract class HttpService
 	    }
 	}
 	
-	private int httpTimeout;
+	private final int httpTimeout;
     }
 
     private class __POST extends Thread
