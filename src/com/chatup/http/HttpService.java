@@ -169,9 +169,9 @@ public abstract class HttpService
 	    {
 		httpConnection.setRequestMethod(httpMethod);
 		
-		if (httpTimeout > 0)
+		if (httpTimeout == -1)
 		{
-		    httpConnection.setReadTimeout(httpTimeout);
+		    httpConnection.setReadTimeout(0);
 		}
 		
 		httpConnection.setRequestProperty("Accept", ChatupGlobals.JsonType);
